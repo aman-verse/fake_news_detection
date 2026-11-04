@@ -32,6 +32,9 @@ if "verification_input" not in st.session_state:
 if "extracted_text" not in st.session_state:
     st.session_state.extracted_text = ""
 
+if "verify_cache" not in st.session_state:
+    st.session_state.verify_cache = {}
+
 selected_page = render_sidebar()
 
 if selected_page == "Home":

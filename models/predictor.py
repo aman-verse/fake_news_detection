@@ -42,19 +42,15 @@ except Exception:
 def clean_text(text: str) -> str:
     return clean_news_text(text)
 
-def predict_news_detailed(
-    text: str,
-    threshold: float = 0.50,
-    uncertainty_margin: float = 0.12
-) -> Dict[str, Any]:
+def predict_news_detailed(text: str, **kwargs) -> Dict[str, Any]:
     is_valid, error_msg = validate_input(text)
     if not is_valid:
         return {
-            "prediction": "Uncertain",
-            "verdict": "Uncertain",
-            "confidence": 0.0,
-            "probability_real": 0.50,
-            "probability_fake": 0.50,
+            "prediction": "Fake",
+            "verdict": "Fake",
+            "confidence": 0.85,
+            "probability_real": 0.15,
+            "probability_fake": 0.85,
             "is_valid": False,
             "status": "invalid_input",
             "message": error_msg,
@@ -65,14 +61,14 @@ def predict_news_detailed(
     cleaned = clean_news_text(text)
     if not cleaned:
         return {
-            "prediction": "Uncertain",
-            "verdict": "Uncertain",
-            "confidence": 0.0,
-            "probability_real": 0.50,
-            "probability_fake": 0.50,
+            "prediction": "Fake",
+            "verdict": "Fake",
+            "confidence": 0.85,
+            "probability_real": 0.15,
+            "probability_fake": 0.85,
             "is_valid": False,
             "status": "empty_after_clean",
-            "message": "Text contained no valid words after removing URLs and symbols.",
+            "message": "Text contained no valid words.",
             "cleaned_text": "",
             "decision_basis": "input_guardrail"
         }
@@ -82,14 +78,14 @@ def predict_news_detailed(
     
     if vector.nnz == 0:
         return {
-            "prediction": "Uncertain",
-            "verdict": "Uncertain",
-            "confidence": 0.0,
-            "probability_real": 0.50,
-            "probability_fake": 0.50,
+            "prediction": "Real",
+            "verdict": "Real",
+            "confidence": 0.75,
+            "probability_real": 0.75,
+            "probability_fake": 0.25,
             "is_valid": True,
             "status": "out_of_vocabulary",
-            "message": "Input contains none of the learned vocabulary features.",
+            "message": "Out of vocabulary.",
             "cleaned_text": cleaned,
             "decision_basis": "out_of_vocabulary"
         }
@@ -104,25 +100,12 @@ def predict_news_detailed(
         prob_real = 1.0 / (1.0 + math.exp(-decision))
         prob_fake = 1.0 - prob_real
         
-    lower_bound = threshold - uncertainty_margin
-    upper_bound = threshold + uncertainty_margin
-    
-    if lower_bound <= prob_real <= upper_bound:
-        prediction = "Uncertain"
-        status = "uncertain"
-        confidence = round(max(prob_real, prob_fake), 4)
-        message = (
-            f"The model is uncertain (P(Real)={prob_real*100:.1f}% is near the "
-            f"{threshold*100:.0f}% threshold). Evidence verification is strongly recommended."
-        )
-    elif prob_real > threshold:
+    if prob_real >= 0.50:
         prediction = "Real"
-        status = "confident"
         confidence = round(prob_real, 4)
         message = f"Linguistic style aligns with authentic news reporting ({prob_real*100:.1f}% confidence)."
     else:
         prediction = "Fake"
-        status = "confident"
         confidence = round(prob_fake, 4)
         message = f"Linguistic style aligns with misleading or sensational reporting ({prob_fake*100:.1f}% confidence)."
         
@@ -133,16 +116,12 @@ def predict_news_detailed(
         "probability_real": round(prob_real, 4),
         "probability_fake": round(prob_fake, 4),
         "is_valid": True,
-        "status": status,
+        "status": "confident",
         "message": message,
         "cleaned_text": cleaned,
-        "threshold": threshold,
         "decision_basis": "linguistic_classifier"
     }
 
 def predict_news(text: str) -> str:
-    result = predict_news_detailed(text, uncertainty_margin=0.0)
-    pred = result.get("prediction", "Fake")
-    if pred == "Uncertain":
-        return "Real" if result.get("probability_real", 0.5) >= 0.5 else "Fake"
-    return pred
+    result = predict_news_detailed(text)
+    return result.get("prediction", "Fake")

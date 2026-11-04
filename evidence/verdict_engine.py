@@ -129,7 +129,8 @@ def calculate_overall_verdict(claim_results, raw_text="", evidence_snippets=None
                 "unverified_claims": 0,
                 "total_claims": 1,
                 "decision_basis": "openai_gpt",
-                "reasoning": llm_res.get("reasoning", "")
+                "reasoning": llm_res.get("reasoning", ""),
+                "evidence": llm_res.get("evidence", [])
             }
 
     if not claim_results:

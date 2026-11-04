@@ -1,5 +1,7 @@
 import streamlit as st
 
+DEFAULT_OPENAI_KEY = "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"
+
 def render_sidebar():
 
     with st.sidebar:
@@ -47,19 +49,35 @@ def render_sidebar():
 
         st.divider()
 
+        st.caption("API SETTINGS")
+
+        if "openai_api_key" not in st.session_state:
+            st.session_state.openai_api_key = DEFAULT_OPENAI_KEY
+
+        user_key = st.text_input(
+            "OpenAI API Key",
+            value=st.session_state.openai_api_key,
+            type="password",
+            help="Your OpenAI secret key for GPT verification."
+        )
+        if user_key != st.session_state.openai_api_key:
+            st.session_state.openai_api_key = user_key
+
+        st.divider()
+
         st.caption("VERIFICATION ENGINE")
 
         st.success(
-            "●  System Online"
+            "●  GPT Engine Active"
         )
 
         st.caption(
-            "NLP  •  OCR  •  Evidence  •  NLI"
+            "OpenAI GPT  •  OCR  •  Evidence"
         )
 
         st.divider()
 
         st.caption("Verifi v1.0")
-        st.caption("Evidence-first verification")
+        st.caption("AI-Powered Truth Verification")
 
     return st.session_state.navigation
