@@ -1,6 +1,7 @@
+import os
 import streamlit as st
 
-DEFAULT_OPENAI_KEY = "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"
+DEFAULT_OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 def render_sidebar():
 

@@ -5,7 +5,7 @@ from openai import OpenAI
 from evidence.web_search import search_web
 from evidence.source_ranker import rank_sources
 
-DEFAULT_OPENAI_KEY = "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"
+DEFAULT_OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 DEBUNK_KEYWORDS = {
     "false", "fake", "hoax", "debunked", "refuted", "denied", "denies",
@@ -48,8 +48,14 @@ def is_hoax_pattern(text: str) -> bool:
     return False
 
 def verify_with_openai(text: str, api_key: str = None):
-    key = api_key or os.environ.get("OPENAI_API_KEY") or DEFAULT_OPENAI_KEY
+    key = api_key or os.environ.get("OPENAI_API_KEY", "") or DEFAULT_OPENAI_KEY
     clean_key = str(key).strip()
+
+    if not clean_key:
+        fallback_result = verify_with_smart_engine(text)
+        fallback_result["is_quota_exhausted"] = False
+        fallback_result["engine"] = "Smart Local Classifier"
+        return fallback_result
 
     try:
         client = OpenAI(api_key=clean_key)
