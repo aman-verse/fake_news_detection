@@ -157,7 +157,7 @@ def calculate_claim_verdict(
 
         if (
             relationship == "entailment"
-            and entailment >= 0.85
+            and entailment >= 0.65
         ):
 
             strength = (
@@ -178,7 +178,7 @@ def calculate_claim_verdict(
 
         elif (
             relationship == "contradiction"
-            and contradiction >= 0.85
+            and contradiction >= 0.65
         ):
 
             strength = (
@@ -310,8 +310,8 @@ def calculate_claim_verdict(
         }
 
     if (
-        support_score < 0.12
-        and contradiction_score < 0.12
+        support_score < 0.05
+        and contradiction_score < 0.05
     ):
 
         return {
@@ -548,14 +548,9 @@ def calculate_overall_verdict(
             decision_basis = "evidence_conflict"
             confidence = 0.0
     else:
-        if fallback_verdict in {"REAL", "FAKE"}:
-            final_verdict = fallback_verdict
-            decision_basis = "model"
-            confidence = round(float(fallback_confidence), 3)
-        else:
-            final_verdict = "UNVERIFIED"
-            decision_basis = "no_evidence"
-            confidence = 0.0
+        final_verdict = "UNVERIFIED"
+        decision_basis = "insufficient_evidence"
+        confidence = 0.0
 
     return {
         "verdict": final_verdict,

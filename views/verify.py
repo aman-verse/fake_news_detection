@@ -338,37 +338,23 @@ def show():
         overall_confidence = overall.get("confidence", 0.0)
         decision_basis = overall.get("decision_basis", "model")
 
-        top_col1, top_col2, top_col3 = st.columns([1.5, 1, 1])
+        top_col1, top_col2 = st.columns([1.8, 1])
 
         with top_col1:
             if overall_verdict == "REAL":
                 st.success("🟢 REAL")
-                if decision_basis == "evidence":
-                    st.caption("Corroborated by independent reputable sources.")
-                else:
-                    st.caption("Linguistic style consistent with authentic reporting (no counter-evidence found).")
+                st.caption("Corroborated by authoritative independent sources.")
             elif overall_verdict == "FAKE":
                 st.error("🔴 FAKE")
-                if decision_basis == "evidence":
-                    st.caption("Contradicted by credible primary or authoritative sources.")
-                else:
-                    st.caption("Linguistic patterns strongly characteristic of fabricated news.")
+                st.caption("Contradicted by credible primary or authoritative sources.")
             else:
                 st.warning("⚪ UNVERIFIED / INCONCLUSIVE")
                 st.caption("External source evidence is insufficient or inconclusive to confirm this claim.")
 
         with top_col2:
             st.metric(
-                "Evidence Confidence",
+                "Confidence",
                 f"{overall_confidence * 100:.1f}%"
-            )
-
-        with top_col3:
-            ml_pred = model_result.get("prediction", "N/A")
-            ml_conf = model_result.get("confidence", 0.0)
-            st.metric(
-                "ML Stylistic Indicator",
-                f"{ml_pred} ({ml_conf * 100:.1f}%)"
             )
 
         st.info(
@@ -414,7 +400,7 @@ def show():
                     0
                 )
 
-                m1, m2, m3, m4 = st.columns(4)
+                m1, m2, m3 = st.columns(3)
 
                 with m1:
                     st.metric(
@@ -432,14 +418,6 @@ def show():
                     st.metric(
                         "Independent Publishers",
                         independent
-                    )
-
-                with m4:
-                    claim_ml = result.get("model_prediction", "N/A")
-                    claim_conf = result.get("model_confidence", 0.0)
-                    st.metric(
-                        "Stylistic Model",
-                        f"{claim_ml} ({claim_conf * 100:.0f}%)"
                     )
 
                 verdict = result.get(

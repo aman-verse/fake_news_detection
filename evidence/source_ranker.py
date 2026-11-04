@@ -19,6 +19,15 @@ OFFICIAL_DOMAINS = {
 
 TRUSTED_NEWS_SCORES = {
 
+        "wikipedia.org": 94,
+    "en.wikipedia.org": 94,
+    "indiatimes.com": 90,
+    "espn.com": 90,
+    "espncricinfo.com": 90,
+    "cricbuzz.com": 88,
+    "usatoday.com": 90,
+    "foxnews.com": 88,
+    "time.com": 92,
     "reuters.com": 98,
     "apnews.com": 98,
     "bbc.com": 96,
@@ -223,7 +232,13 @@ def classify_source(url):
 
             return "Social Media", 45
 
-    return "Other", 30
+    if any(k in domain for k in ["news", "times", "post", "tribune", "daily", "herald", "journal", "gazette", "wire", "express", "today"]):
+        return "Trusted News", 80
+
+    if domain.endswith(".org") or domain.endswith(".edu"):
+        return "Trusted News", 85
+
+    return "Web Source", 60
 
 def apply_domain_diversity(
     results,

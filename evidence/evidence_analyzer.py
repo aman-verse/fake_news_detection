@@ -158,98 +158,62 @@ def analyze_claim_against_evidence(
         "directness": 0.0
     }
 
-def analyze_evidence(
-    claim,
-    evidence
-):
-
+def analyze_evidence(claim, evidence):
     analyzed = []
+    top_items = evidence[:4]
 
-    for item in evidence:
+    for item in top_items:
+        evidence_text = item.get("evidence_text", "").strip()
+        if not evidence_text:
+            continue
 
-        evidence_text = item.get(
-            "evidence_text",
-            ""
-        )
-
-        nli = analyze_claim_against_evidence(
-            claim,
-            evidence_text
-        )
-
-        structured = fact_check(
-            claim,
-            evidence_text
-        )
-
-        relationship = nli["label"]
-
-        directness = 0.0
-
-        if structured["relation"] == "support":
-
+        structured = fact_check(claim, evidence_text)
+        if structured.get("relation") == "support":
             relationship = "entailment"
             directness = 1.0
-
-        elif structured["relation"] == "contradict":
-
+            nli = {
+                "label": "entailment",
+                "confidence": structured.get("confidence", 0.95),
+                "entailment": 0.95,
+                "contradiction": 0.0,
+                "neutral": 0.05
+            }
+        elif structured.get("relation") == "contradict":
             relationship = "contradiction"
             directness = 1.0
-
+            nli = {
+                "label": "contradiction",
+                "confidence": structured.get("confidence", 0.95),
+                "entailment": 0.0,
+                "contradiction": 0.95,
+                "neutral": 0.05
+            }
         else:
+            nli = analyze_claim_against_evidence(claim, evidence_text)
+            relationship = nli["label"]
+            directness = 0.0
 
-            if (
-                nli["label"] == "entailment"
-                and nli["entailment"] >= 0.75
-            ):
-
-                directness = 0.5
-
-            elif (
-                nli["label"] == "contradiction"
-                and nli["contradiction"] >= 0.75
-            ):
-
-                directness = 0.5
-
+            if nli["label"] == "entailment" and nli["entailment"] >= 0.65:
+                directness = 0.6
+                relationship = "entailment"
+            elif nli["label"] == "contradiction" and nli["contradiction"] >= 0.65:
+                directness = 0.6
+                relationship = "contradiction"
             else:
-
                 relationship = "neutral"
 
         analyzed.append({
-
             **item,
-
-            "relationship":
-                relationship,
-
-            "nli_confidence":
-                nli["confidence"],
-
-            "entailment_probability":
-                nli["entailment"],
-
-            "contradiction_probability":
-                nli["contradiction"],
-
-            "neutral_probability":
-                nli["neutral"],
-
-            "directness":
-                directness,
-
-            "structured":
-                structured["relation"]
-                != "neutral",
-
-            "fact_relation":
-                structured["relation"],
-
-            "fact_confidence":
-                structured["confidence"],
-
-            "fact_reason":
-                structured["reason"]
+            "relationship": relationship,
+            "nli_confidence": nli["confidence"],
+            "entailment_probability": nli["entailment"],
+            "contradiction_probability": nli["contradiction"],
+            "neutral_probability": nli["neutral"],
+            "directness": directness,
+            "structured": structured["relation"] != "neutral",
+            "fact_relation": structured["relation"],
+            "fact_confidence": structured["confidence"],
+            "fact_reason": structured["reason"]
         })
 
     return analyzed

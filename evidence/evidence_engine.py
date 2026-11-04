@@ -52,7 +52,7 @@ def fetch_page_text(url):
         response = requests.get(
             url,
             headers=HEADERS,
-            timeout=10
+            timeout=2
         )
 
         response.raise_for_status()
@@ -440,44 +440,26 @@ def filter_sources(
     results,
     source_scope
 ):
+    if not results:
+        return []
 
-    if source_scope == (
-        "Trusted news + official sources"
-    ):
-
-        allowed = {
-            "official",
-            "trusted news",
-            "fact check"
-        }
-
+    if source_scope == "Trusted news + official sources":
+        allowed = {"official", "trusted news", "fact check", "web source"}
     elif source_scope == "News sources only":
-
-        allowed = {
-            "trusted news",
-            "fact check"
-        }
-
+        allowed = {"trusted news", "fact check"}
     elif source_scope == "Official sources only":
-
-        allowed = {
-            "official"
-        }
-
+        allowed = {"official"}
     else:
-
         return results
 
-    return [
+    filtered = [
         result
         for result in results
-        if str(
-            result.get(
-                "source_type",
-                ""
-            )
-        ).lower() in allowed
+        if str(result.get("source_type", "")).lower() in allowed
     ]
+    if not filtered:
+        return results
+    return filtered
 
 def add_targeted_queries(
     claim,
@@ -573,258 +555,90 @@ def collect_evidence(
     max_results_per_query=5,
     max_evidence=8,
     deep=False,
-    source_scope=(
-        "Trusted news + official sources"
-    )
+    source_scope="Trusted news + official sources"
 ):
-
     if not claim:
-
         return []
 
-    queries = build_search_queries(
-        claim,
-        deep=deep
-    )
-
-    queries = add_targeted_queries(
-        claim,
-        queries
-    )
+    queries = [claim.strip()]
+    if deep:
+        queries.append(f"{claim.strip()} news fact check")
 
     all_results = []
-
-    for query_index, query in enumerate(
-        queries
-    ):
-
+    for query_index, query in enumerate(queries):
         try:
-
-            results = search_web(
-                query,
-                max_results=max_results_per_query
-            )
-
+            results = search_web(query, max_results=max_results_per_query)
             for result in results:
-
-                result["_query_index"] = (
-                    query_index
-                )
-
-                all_results.append(
-                    result
-                )
-
+                result["_query_index"] = query_index
+                all_results.append(result)
+            if len(all_results) >= 6 and not deep:
+                break
         except Exception:
-
             continue
 
-    all_results = remove_duplicate_results(
-        all_results
-    )
-
-    ranked = rank_sources(
-        all_results
-    )
-
-    ranked = filter_sources(
-        ranked,
-        source_scope
-    )
+    all_results = remove_duplicate_results(all_results)
+    ranked = rank_sources(all_results)
+    ranked = filter_sources(ranked, source_scope)
 
     evidence = []
-
     for result in ranked:
-
-        url = result.get(
-            "url",
-            ""
-        )
-
+        url = result.get("url", "")
         if not url:
-
             continue
 
-        page_text = fetch_page_text(
-            url
-        )
+        snippet = (result.get("title", "") + ". " + result.get("description", "")).strip()
+        relevant_text = snippet
 
-        if not page_text:
-
-            page_text = (
-                result.get(
-                    "title",
-                    ""
-                )
-                + ". "
-                + result.get(
-                    "description",
-                    ""
-                )
-            )
-
-        relevant_text = (
-            extract_relevant_sentences(
-                claim,
-                page_text,
-                max_sentences=6
-            )
-        )
+        if deep and len(snippet.split()) < 12:
+            page_text = fetch_page_text(url)
+            if page_text:
+                extracted = extract_relevant_sentences(claim, page_text, max_sentences=4)
+                if extracted:
+                    relevant_text = extracted
 
         if not relevant_text:
-
             continue
 
         relevance = calculate_relevance(
             claim,
             relevant_text,
-            result.get(
-                "title",
-                ""
-            ),
-            result.get(
-                "description",
-                ""
-            )
+            result.get("title", ""),
+            result.get("description", "")
         )
 
-        if relevance < 0.05:
-
-            fallback_text = (
-                result.get(
-                    "title",
-                    ""
-                )
-                + ". "
-                + result.get(
-                    "description",
-                    ""
-                )
-            )
-
-            fallback_relevance = (
-                calculate_relevance(
-                    claim,
-                    fallback_text
-                )
-            )
-
-            if fallback_relevance > relevance:
-
-                relevant_text = fallback_text
-
-                relevance = (
-                    fallback_relevance
-                )
-
-        if relevance < 0.03:
-
+        if relevance < 0.02:
             continue
 
-        source_score = float(
-            result.get(
-                "source_score",
-                0
-            )
-        )
-
-        final_score = (
-            relevance * 100 * 0.70
-            +
-            source_score * 0.30
-        )
+        source_score = float(result.get("source_score", 0))
+        final_score = (relevance * 100 * 0.70) + (source_score * 0.30)
 
         evidence.append({
-
-            "title": result.get(
-                "title",
-                ""
-            ),
-
+            "title": result.get("title", ""),
             "url": url,
-
-            "domain": result.get(
-                "domain",
-                ""
-            ),
-
-            "publisher_id": result.get(
-                "publisher_id",
-                result.get(
-                    "domain",
-                    ""
-                )
-            ),
-
-            "source_type": result.get(
-                "source_type",
-                "Other"
-            ),
-
+            "domain": result.get("domain", ""),
+            "publisher_id": result.get("publisher_id", result.get("domain", "")),
+            "source_type": result.get("source_type", "Other"),
             "source_score": source_score,
-
-            "relevance_score": round(
-                relevance,
-                3
-            ),
-
-            "final_score": round(
-                final_score,
-                2
-            ),
-
-            "description": result.get(
-                "description",
-                ""
-            ),
-
+            "relevance_score": round(relevance, 3),
+            "final_score": round(final_score, 2),
+            "description": result.get("description", ""),
             "evidence_text": relevant_text
         })
 
     evidence.sort(
-        key=lambda item: (
-            item.get(
-                "final_score",
-                0
-            ),
-            item.get(
-                "relevance_score",
-                0
-            )
-        ),
+        key=lambda item: (item.get("final_score", 0), item.get("relevance_score", 0)),
         reverse=True
     )
 
     selected = []
-
     publishers = set()
-
     for item in evidence:
-
-        publisher = str(
-            item.get(
-                "publisher_id",
-                item.get(
-                    "domain",
-                    ""
-                )
-            )
-        ).lower()
-
+        publisher = str(item.get("publisher_id", item.get("domain", ""))).lower()
         if publisher in publishers:
-
             continue
-
-        publishers.add(
-            publisher
-        )
-
-        selected.append(
-            item
-        )
-
+        publishers.add(publisher)
+        selected.append(item)
         if len(selected) >= max_evidence:
-
             break
 
     return selected
