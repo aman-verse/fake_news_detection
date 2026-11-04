@@ -6,7 +6,6 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from evidence.query_builder import build_search_queries
 
-
 claim = (
     "China is currently the world's most populous country, "
     "ahead of India."

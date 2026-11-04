@@ -8,12 +8,7 @@ from evidence.evidence_engine import collect_evidence
 from evidence.evidence_analyzer import analyze_evidence
 from evidence.verdict_engine import calculate_claim_verdict
 
-
 TEST_CASES = [
-
-    # =====================================================
-    # REAL
-    # =====================================================
 
     {
         "id": "REAL-1",
@@ -24,10 +19,6 @@ TEST_CASES = [
         )
     },
 
-    # =====================================================
-    # FALSE
-    # =====================================================
-
     {
         "id": "FALSE-1",
         "expected": "Contradicted",
@@ -37,10 +28,6 @@ TEST_CASES = [
         )
     },
 
-    # =====================================================
-    # UNVERIFIED
-    # =====================================================
-
     {
         "id": "UNVERIFIED-1",
         "expected": "Unverified",
@@ -49,10 +36,6 @@ TEST_CASES = [
             "has a permanent population of 50,000 people."
         )
     },
-
-    # =====================================================
-    # MIXED / CONFLICTING
-    # =====================================================
 
     {
         "id": "MIXED-1",
@@ -64,15 +47,12 @@ TEST_CASES = [
     }
 ]
 
-
 print("=" * 70)
 print("VERIFI BLIND VERIFICATION TEST")
 print("=" * 70)
 
-
 passed = 0
 failed = 0
-
 
 for test in TEST_CASES:
 
@@ -93,10 +73,6 @@ for test in TEST_CASES:
         test["expected"]
     )
 
-    # -----------------------------------------------------
-    # SEARCH
-    # -----------------------------------------------------
-
     evidence = collect_evidence(
         test["claim"],
         max_results_per_query=5,
@@ -110,18 +86,10 @@ for test in TEST_CASES:
         len(evidence)
     )
 
-    # -----------------------------------------------------
-    # NLI
-    # -----------------------------------------------------
-
     analyzed = analyze_evidence(
         test["claim"],
         evidence
     )
-
-    # -----------------------------------------------------
-    # CLAIM VERDICT
-    # -----------------------------------------------------
 
     result = calculate_claim_verdict(
         analyzed
@@ -177,10 +145,6 @@ for test in TEST_CASES:
         )
     )
 
-    # -----------------------------------------------------
-    # PASS / FAIL
-    # -----------------------------------------------------
-
     if actual == test["expected"]:
 
         print("STATUS: PASS")
@@ -192,7 +156,6 @@ for test in TEST_CASES:
         print("STATUS: FAIL")
 
         failed += 1
-
 
 print("\n" + "=" * 70)
 print("FINAL TEST SUMMARY")

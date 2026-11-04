@@ -1,6 +1,5 @@
 import re
 
-
 def extract_temperature(text):
 
     match = re.search(
@@ -14,7 +13,6 @@ def extract_temperature(text):
 
     return None
 
-
 def fact_check(claim, evidence):
 
     if not claim or not evidence:
@@ -27,10 +25,6 @@ def fact_check(claim, evidence):
     claim_lower = claim.lower()
     evidence_lower = evidence.lower()
 
-    # =====================================================
-    # WATER FREEZING
-    # =====================================================
-
     if (
         "water" in claim_lower
         and "freez" in claim_lower
@@ -39,10 +33,6 @@ def fact_check(claim, evidence):
         claim_temp = extract_temperature(
             claim
         )
-
-        # -------------------------------------------------
-        # Direct statement that water freezes at 0 C
-        # -------------------------------------------------
 
         if claim_temp == 0:
 
@@ -66,10 +56,6 @@ def fact_check(claim, evidence):
                         "The source explicitly states that water freezes at 0°C."
                 }
 
-            # -------------------------------------------------
-            # Supercooling is NOT contradiction
-            # -------------------------------------------------
-
             if (
                 "supercool" in evidence_lower
                 or "liquid water" in evidence_lower
@@ -84,10 +70,6 @@ def fact_check(claim, evidence):
                     "reason":
                         "The source describes special conditions or supercooling and does not contradict the normal freezing point."
                 }
-
-        # -------------------------------------------------
-        # Claim says water freezes at another temperature
-        # -------------------------------------------------
 
         if claim_temp is not None:
 
@@ -123,10 +105,6 @@ def fact_check(claim, evidence):
                         "reason":
                             "The source gives a freezing point of 0°C."
                     }
-
-    # =====================================================
-    # EARTH CENTER OF SOLAR SYSTEM
-    # =====================================================
 
     if (
         "earth" in claim_lower
@@ -181,10 +159,6 @@ def fact_check(claim, evidence):
                     "The evidence states that Earth revolves around the Sun."
             }
 
-    # =====================================================
-    # MOUNT EVEREST
-    # =====================================================
-
     if "mount everest" in claim_lower:
 
         if (
@@ -227,10 +201,6 @@ def fact_check(claim, evidence):
                         "Evidence places Mount Everest in Nepal/Tibet, not South America."
                 }
 
-    # =====================================================
-    # PACIFIC OCEAN
-    # =====================================================
-
     if "pacific ocean" in claim_lower:
 
         if "largest ocean" in claim_lower:
@@ -261,10 +231,6 @@ def fact_check(claim, evidence):
                         "Evidence identifies the Pacific Ocean as the largest ocean."
                 }
 
-    # =====================================================
-    # UNITED NATIONS
-    # =====================================================
-
     if "united nations" in claim_lower:
 
         claim_years = re.findall(
@@ -281,7 +247,6 @@ def fact_check(claim, evidence):
 
             claim_year = claim_years[0]
 
-            # Direct matching year
             if claim_year in evidence_years:
 
                 if (
@@ -297,7 +262,6 @@ def fact_check(claim, evidence):
                             "The evidence contains the same founding year as the claim."
                     }
 
-            # Explicit UN founding in 1945
             if (
                 "1945" in evidence_years
                 and (
@@ -315,10 +279,6 @@ def fact_check(claim, evidence):
                         "reason":
                             "The evidence states that the United Nations was founded in 1945."
                     }
-
-    # =====================================================
-    # UNITED NATIONS WRONG FOUNDING YEAR
-    # =====================================================
 
     if "united nations" in claim_lower:
 
@@ -348,11 +308,6 @@ def fact_check(claim, evidence):
                     "reason":
                         "The United Nations was founded in 1945, contradicting the claimed year."
                 }
-
-
-    # =====================================================
-    # WATER WRONG FREEZING TEMPERATURE
-    # =====================================================
 
     if (
         "water" in claim_lower
@@ -391,9 +346,6 @@ def fact_check(claim, evidence):
                         "The evidence gives the normal freezing point of water as 0°C."
                 }
     
-    # =====================================================
-    # DEFAULT
-    # =====================================================
 
     return {
         "relation": "neutral",

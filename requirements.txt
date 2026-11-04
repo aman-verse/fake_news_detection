@@ -2,6 +2,7 @@ streamlit
 streamlit-option-menu
 
 pandas
+pyarrow
 
 Pillow
 opencv-python-headless
@@ -10,6 +11,7 @@ easyocr
 spacy
 sentence-transformers
 transformers
+huggingface-hub
 torch
 
 scikit-learn

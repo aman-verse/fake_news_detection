@@ -1,11 +1,6 @@
 import streamlit as st
 
-
 def show():
-
-    # =========================================================
-    # HERO
-    # =========================================================
 
     st.markdown(
         """
@@ -61,11 +56,6 @@ def show():
         unsafe_allow_html=True
     )
 
-
-    # =========================================================
-    # LOGO
-    # =========================================================
-
     logo_left, logo_center, logo_right = st.columns(
         [2, 1, 2]
     )
@@ -77,11 +67,6 @@ def show():
             width=180
         )
 
-
-    # =========================================================
-    # TITLE
-    # =========================================================
-
     st.markdown(
         """
         <h1 class="hero-title">
@@ -91,20 +76,12 @@ def show():
         unsafe_allow_html=True
     )
 
-
-    # Decorative line
-
     st.markdown(
         """
         <div class="hero-line"></div>
         """,
         unsafe_allow_html=True
     )
-
-
-    # =========================================================
-    # SUBTITLE
-    # =========================================================
 
     st.markdown(
         """
@@ -114,11 +91,6 @@ def show():
         """,
         unsafe_allow_html=True
     )
-
-
-    # =========================================================
-    # DESCRIPTION
-    # =========================================================
 
     st.markdown(
         """
@@ -130,13 +102,7 @@ def show():
         unsafe_allow_html=True
     )
 
-
     st.write("")
-
-
-    # =========================================================
-    # MAIN CTA
-    # =========================================================
 
     cta1, cta2, cta3 = st.columns(
         [1, 1, 1]
@@ -161,11 +127,6 @@ def show():
 
     st.write("")
     st.divider()
-
-
-    # =========================================================
-    # PLATFORM SNAPSHOT
-    # =========================================================
 
     st.subheader("Verification, not just prediction")
 
@@ -206,14 +167,8 @@ def show():
             "Evidence-backed"
         )
 
-
     st.write("")
     st.divider()
-
-
-    # =========================================================
-    # CORE CAPABILITIES
-    # =========================================================
 
     st.header("What Verifi can analyze")
 
@@ -241,7 +196,6 @@ def show():
                 "Claims • Entities • Context • Semantics"
             )
 
-
     with col2:
 
         with st.container(border=True):
@@ -257,7 +211,6 @@ def show():
                 "Screenshots • Posters • Social Posts"
             )
 
-
     with col3:
 
         with st.container(border=True):
@@ -272,7 +225,6 @@ def show():
             st.caption(
                 "News • Official Sources • Relevant Evidence"
             )
-
 
     col1, col2, col3 = st.columns(3)
 
@@ -291,7 +243,6 @@ def show():
                 "Claims • Entities • Relationships"
             )
 
-
     with col2:
 
         with st.container(border=True):
@@ -306,7 +257,6 @@ def show():
             st.caption(
                 "Verdict • Confidence • Evidence"
             )
-
 
     with col3:
 
@@ -323,14 +273,8 @@ def show():
                 "Sources • Similarity • Verification"
             )
 
-
     st.write("")
     st.divider()
-
-
-    # =========================================================
-    # HOW IT WORKS
-    # =========================================================
 
     st.header("How Verifi works")
 
@@ -353,7 +297,6 @@ def show():
             "Paste an article or upload a screenshot."
         )
 
-
     with step2:
 
         st.markdown("### 02")
@@ -363,7 +306,6 @@ def show():
         st.write(
             "Extract text, entities and important claims."
         )
-
 
     with step3:
 
@@ -375,7 +317,6 @@ def show():
             "Search for relevant supporting or contradicting evidence."
         )
 
-
     with step4:
 
         st.markdown("### 04")
@@ -385,7 +326,6 @@ def show():
         st.write(
             "Compare the claim with discovered evidence."
         )
-
 
     with step5:
 
@@ -397,14 +337,8 @@ def show():
             "Present an evidence-backed assessment."
         )
 
-
     st.write("")
     st.divider()
-
-
-    # =========================================================
-    # VERIFICATION PHILOSOPHY
-    # =========================================================
 
     st.header("Why evidence matters")
 
@@ -436,7 +370,6 @@ def show():
                 "A prediction alone does not explain whether "
                 "the underlying claim is actually supported."
             )
-
 
     with right:
 
@@ -471,14 +404,8 @@ def show():
                 "reasoning used during verification."
             )
 
-
     st.write("")
     st.divider()
-
-
-    # =========================================================
-    # TECHNOLOGY
-    # =========================================================
 
     st.header("Technology stack")
 
@@ -488,7 +415,6 @@ def show():
         "🌐 Verification",
         "🖥️ Application"
     ])
-
 
     with tabs[0]:
 
@@ -505,7 +431,6 @@ def show():
         with c3:
             st.info("Scikit-learn")
 
-
     with tabs[1]:
 
         st.subheader("Image Processing")
@@ -520,7 +445,6 @@ def show():
 
         with c3:
             st.info("Text extraction")
-
 
     with tabs[2]:
 
@@ -537,7 +461,6 @@ def show():
         with c3:
             st.info("Semantic similarity")
 
-
     with tabs[3]:
 
         st.subheader("Application")
@@ -553,14 +476,8 @@ def show():
         with c3:
             st.info("Modular architecture")
 
-
     st.write("")
     st.divider()
-
-
-    # =========================================================
-    # FINAL CTA
-    # =========================================================
 
     st.header("Ready to verify a claim?")
 

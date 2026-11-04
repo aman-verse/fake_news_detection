@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-
 PROJECT_ROOT = (
     Path(__file__).resolve().parent.parent
 )
@@ -11,23 +10,19 @@ sys.path.insert(
     str(PROJECT_ROOT)
 )
 
-
 from evidence.evidence_engine import (
     collect_evidence
 )
 
-
 claim = (
     "Virat Kohli latest news"
 )
-
 
 scopes = [
     "Trusted news + official sources",
     "News sources only",
     "Official sources only"
 ]
-
 
 for scope in scopes:
 

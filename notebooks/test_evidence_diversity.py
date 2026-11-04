@@ -2,7 +2,6 @@ from evidence.evidence_analyzer import (
     analyze_claim_against_evidence
 )
 
-
 tests = [
 
     (
@@ -27,11 +26,9 @@ tests = [
 
 ]
 
-
 print("=" * 70)
 print("VERIFI NLI ENGINE TEST")
 print("=" * 70)
-
 
 for claim, evidence in tests:
 

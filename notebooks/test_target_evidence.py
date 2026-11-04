@@ -6,13 +6,11 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from evidence.evidence_engine import collect_evidence
 
-
 CLAIMS = [
     "Water freezes at 0 degrees Celsius at standard atmospheric pressure.",
     "Mount Everest is the highest mountain above sea level.",
     "Water freezes at 50 degrees Celsius at standard atmospheric pressure."
 ]
-
 
 for claim in CLAIMS:
 

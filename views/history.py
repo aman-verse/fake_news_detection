@@ -6,7 +6,6 @@ from utils.history_db import (
     delete_history_item
 )
 
-
 def show():
 
     st.title("📚 Verification History")
@@ -38,10 +37,6 @@ def show():
 
     st.divider()
 
-    # =====================================================
-    # HISTORY LIST
-    # =====================================================
-
     for item in history:
 
         (
@@ -57,35 +52,20 @@ def show():
             claims_data
         ) = item
 
-        # -------------------------------------------------
-        # VERDICT DISPLAY
-        # -------------------------------------------------
+        verdict_upper = str(verdict or "").upper().strip()
 
-        if verdict == "REAL":
-
+        if verdict_upper == "REAL":
             verdict_text = "🟢 REAL"
             binary_verdict = "REAL"
-
-        elif verdict == "FAKE":
-
+        elif verdict_upper == "FAKE":
             verdict_text = "🔴 FAKE"
             binary_verdict = "FAKE"
-
+        elif verdict_upper in {"UNVERIFIED", "UNCERTAIN"}:
+            verdict_text = "⚪ UNVERIFIED"
+            binary_verdict = "UNVERIFIED"
         else:
-            from models.predictor import predict_news
-
-            binary_verdict = predict_news(
-                input_text
-            ).upper()
-            verdict_text = (
-                "🟢 REAL"
-                if binary_verdict == "REAL"
-                else "🔴 FAKE"
-            )
-
-        # -------------------------------------------------
-        # HISTORY CARD
-        # -------------------------------------------------
+            verdict_text = f"⚪ {verdict_upper}"
+            binary_verdict = verdict_upper
 
         with st.container(
             border=True
@@ -112,10 +92,6 @@ def show():
                     f"{confidence * 100:.1f}%"
                 )
 
-            # -------------------------------------------------
-            # INPUT PREVIEW
-            # -------------------------------------------------
-
             preview = input_text.replace(
                 "\n",
                 " "
@@ -132,36 +108,28 @@ def show():
                 preview
             )
 
-            # -------------------------------------------------
-            # CLAIM SUMMARY
-            # -------------------------------------------------
-
             claim_col1, claim_col2, claim_col3 = st.columns(3)
 
             with claim_col1:
 
                 st.metric(
-                    "Supported",
+                    "Supported Claims",
                     supported
                 )
 
             with claim_col2:
 
                 st.metric(
-                    "Contradicted",
+                    "Contradicted Claims",
                     contradicted
                 )
 
             with claim_col3:
 
                 st.metric(
-                    "Evidence gaps",
+                    "Unverified / Gaps",
                     unverified
                 )
-
-            # -------------------------------------------------
-            # DETAILS
-            # -------------------------------------------------
 
             with st.expander(
                 "View verification details"
@@ -206,24 +174,9 @@ def show():
                     )
 
                     claim_verdict = claim.get(
-                        "binary_verdict"
+                        "binary_verdict",
+                        claim.get("verdict", "UNVERIFIED")
                     )
-
-                    if claim_verdict not in {
-                        "REAL",
-                        "FAKE"
-                    }:
-                        legacy_verdict = claim.get(
-                            "verdict",
-                            ""
-                        )
-                        claim_verdict = {
-                            "Supported": "REAL",
-                            "Contradicted": "FAKE"
-                        }.get(
-                            legacy_verdict,
-                            binary_verdict
-                        )
 
                     claim_confidence = claim.get(
                         "confidence",
@@ -231,17 +184,13 @@ def show():
                     )
 
                     st.write(
-                        f"Result: **{claim_verdict}**"
+                        f"Verdict: **{claim_verdict}**"
                     )
 
                     st.write(
                         "Confidence: "
                         f"{claim_confidence * 100:.1f}%"
                     )
-
-            # -------------------------------------------------
-            # DELETE
-            # -------------------------------------------------
 
             if st.button(
                 "Delete",

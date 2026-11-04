@@ -1,8 +1,3 @@
-# =========================================================
-# VERIFI VERDICT ENGINE
-# =========================================================
-
-
 def get_evidence_weight(item):
 
     source_score = float(
@@ -46,11 +41,6 @@ def get_evidence_weight(item):
         * relevance_weight
     )
 
-
-# =========================================================
-# CLAIM VERDICT
-# =========================================================
-
 def calculate_claim_verdict(
     analyzed_evidence
 ):
@@ -73,10 +63,6 @@ def calculate_claim_verdict(
     supporting_publishers = set()
     contradicting_publishers = set()
     all_publishers = set()
-
-    # =====================================================
-    # PROCESS EVIDENCE
-    # =====================================================
 
     for item in analyzed_evidence:
 
@@ -102,10 +88,6 @@ def calculate_claim_verdict(
 
         if weight <= 0:
             continue
-
-        # =================================================
-        # STRUCTURED FACT CHECK
-        # =================================================
 
         fact_relation = item.get(
             "fact_relation",
@@ -147,10 +129,6 @@ def calculate_claim_verdict(
 
             continue
 
-        # =================================================
-        # NLI FALLBACK
-        # =================================================
-
         relationship = item.get(
             "relationship",
             "neutral"
@@ -176,9 +154,6 @@ def calculate_claim_verdict(
                 0.0
             )
         )
-
-        # Generic NLI needs strong probability
-        # and is deliberately weaker than structured facts.
 
         if (
             relationship == "entailment"
@@ -222,10 +197,6 @@ def calculate_claim_verdict(
                     publisher
                 )
 
-    # =====================================================
-    # COUNTS
-    # =====================================================
-
     supporting_sources = len(
         supporting_publishers
     )
@@ -237,10 +208,6 @@ def calculate_claim_verdict(
     independent_sources = len(
         all_publishers
     )
-
-    # =====================================================
-    # STRONG STRUCTURED EVIDENCE
-    # =====================================================
 
     strong_support = any(
         item.get("fact_relation")
@@ -265,10 +232,6 @@ def calculate_claim_verdict(
         ) >= 0.95
         for item in analyzed_evidence
     )
-
-    # =====================================================
-    # STRONG FACT HAS PRIORITY
-    # =====================================================
 
     if strong_support and not strong_contradiction:
 
@@ -346,10 +309,6 @@ def calculate_claim_verdict(
                 independent_sources
         }
 
-    # =====================================================
-    # NO STRONG EVIDENCE
-    # =====================================================
-
     if (
         support_score < 0.12
         and contradiction_score < 0.12
@@ -374,10 +333,6 @@ def calculate_claim_verdict(
                 independent_sources
         }
 
-    # =====================================================
-    # CONFLICT
-    # =====================================================
-
     if (
         supporting_sources > 0
         and contradicting_sources > 0
@@ -394,9 +349,6 @@ def calculate_claim_verdict(
                 support_score
                 - contradiction_score
             )
-
-            # Only call it unresolved when
-            # evidence is genuinely close.
 
             if (
                 difference / total
@@ -421,10 +373,6 @@ def calculate_claim_verdict(
                     "independent_sources":
                         independent_sources
                 }
-
-    # =====================================================
-    # FINAL COMPARISON
-    # =====================================================
 
     if support_score > contradiction_score:
 
@@ -511,34 +459,22 @@ def calculate_claim_verdict(
             independent_sources
     }
 
-
-# =========================================================
-# OVERALL VERDICT
-# =========================================================
-
 def calculate_overall_verdict(
     claim_results,
-    fallback_verdict
+    fallback_verdict="UNVERIFIED",
+    fallback_confidence=0.0
 ):
 
-    fallback_verdict = str(
-        fallback_verdict
-    ).strip().upper()
+    fallback_verdict = str(fallback_verdict or "UNVERIFIED").strip().upper()
 
-    if fallback_verdict not in {
-        "REAL",
-        "FAKE"
-    }:
-
-        raise ValueError(
-            "fallback_verdict must be Real or Fake"
-        )
+    if fallback_verdict not in {"REAL", "FAKE", "UNCERTAIN", "UNVERIFIED"}:
+        fallback_verdict = "UNVERIFIED"
 
     if not claim_results:
 
         return {
             "verdict": fallback_verdict,
-            "confidence": 0.0,
+            "confidence": round(float(fallback_confidence), 3),
             "supported_claims": 0,
             "contradicted_claims": 0,
             "unverified_claims": 0,
@@ -559,13 +495,6 @@ def calculate_overall_verdict(
             "Unverified"
         )
 
-        confidence = float(
-            result.get(
-                "confidence",
-                0.0
-            )
-        )
-
         support_score += float(
             result.get(
                 "support_score",
@@ -581,72 +510,59 @@ def calculate_overall_verdict(
         )
 
         if verdict == "Supported":
-
             supported += 1
-
         elif verdict == "Contradicted":
-
             contradicted += 1
-
         else:
-
             unverified += 1
 
-    if support_score > contradiction_score:
+    if support_score > contradiction_score and support_score >= 0.15:
         final_verdict = "REAL"
         decision_basis = "evidence"
-    elif contradiction_score > support_score:
+        total_ev = support_score + contradiction_score
+        confidence = support_score / total_ev if total_ev > 0 else 0.85
+    elif contradiction_score > support_score and contradiction_score >= 0.15:
         final_verdict = "FAKE"
         decision_basis = "evidence"
-    elif supported > contradicted:
+        total_ev = support_score + contradiction_score
+        confidence = contradiction_score / total_ev if total_ev > 0 else 0.85
+    elif supported > 0 and contradicted == 0:
         final_verdict = "REAL"
         decision_basis = "evidence"
-    elif contradicted > supported:
+        confidence = 0.80
+    elif contradicted > 0 and supported == 0:
         final_verdict = "FAKE"
         decision_basis = "evidence"
+        confidence = 0.80
+    elif supported > 0 and contradicted > 0:
+        if supported > contradicted:
+            final_verdict = "REAL"
+            decision_basis = "evidence_split"
+            confidence = round(supported / (supported + contradicted), 3)
+        elif contradicted > supported:
+            final_verdict = "FAKE"
+            decision_basis = "evidence_split"
+            confidence = round(contradicted / (supported + contradicted), 3)
+        else:
+            final_verdict = "UNVERIFIED"
+            decision_basis = "evidence_conflict"
+            confidence = 0.0
     else:
-        final_verdict = fallback_verdict
-        decision_basis = "model"
-
-    evidence_total = (
-        support_score
-        + contradiction_score
-    )
-
-    if evidence_total > 0:
-        confidence = max(
-            support_score,
-            contradiction_score
-        ) / evidence_total
-    else:
-        confidence_values = [
-            float(result.get("confidence", 0.0))
-            for result in claim_results
-            if result.get("verdict") in {
-                "Supported",
-                "Contradicted"
-            }
-        ]
-        confidence = (
-            sum(confidence_values) / len(confidence_values)
-            if confidence_values
-            else 0.0
-        )
+        if fallback_verdict in {"REAL", "FAKE"}:
+            final_verdict = fallback_verdict
+            decision_basis = "model"
+            confidence = round(float(fallback_confidence), 3)
+        else:
+            final_verdict = "UNVERIFIED"
+            decision_basis = "no_evidence"
+            confidence = 0.0
 
     return {
         "verdict": final_verdict,
-        "confidence": round(
-            confidence,
-            3
-        ),
-        "supported_claims":
-            supported,
-        "contradicted_claims":
-            contradicted,
-        "unverified_claims":
-            unverified,
-        "total_claims":
-            len(claim_results),
-        "decision_basis":
-            decision_basis
+        "confidence": round(confidence, 3),
+        "supported_claims": supported,
+        "contradicted_claims": contradicted,
+        "unverified_claims": unverified,
+        "total_claims": len(claim_results),
+        "decision_basis": decision_basis
     }

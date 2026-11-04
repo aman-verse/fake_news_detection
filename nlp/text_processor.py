@@ -4,7 +4,6 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
-
 def download_nltk_data():
 
     nltk.download("punkt")
@@ -12,11 +11,9 @@ def download_nltk_data():
     nltk.download("wordnet")
     nltk.download("omw-1.4")
 
-
 def split_sentences(text):
 
     return nltk.sent_tokenize(text)
-
 
 def tokenize_text(text):
 
@@ -24,7 +21,6 @@ def tokenize_text(text):
         r"\b[a-zA-Z]+\b",
         text.lower()
     )
-
 
 def preprocess_tokens(text):
 
@@ -45,7 +41,6 @@ def preprocess_tokens(text):
             processed.append(token)
 
     return processed
-
 
 def preprocess_text(text):
 

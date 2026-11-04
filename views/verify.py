@@ -1,8 +1,8 @@
 import streamlit as st
 
-from nlp.preprocessing import clean_text
+from nlp.preprocessing import clean_text, validate_input
 from nlp.claim_extractor import extract_claims
-from models.predictor import predict_news
+from models.predictor import predict_news_detailed, predict_news
 from utils.history_db import save_verification
 from evidence.evidence_engine import collect_evidence
 from evidence.evidence_analyzer import analyze_evidence
@@ -10,7 +10,6 @@ from evidence.verdict_engine import (
     calculate_claim_verdict,
     calculate_overall_verdict
 )
-
 
 def show():
 
@@ -22,10 +21,6 @@ def show():
     )
 
     st.divider()
-
-    # =========================================================
-    # INPUT
-    # =========================================================
 
     st.subheader("1. Choose your input")
 
@@ -41,30 +36,22 @@ def show():
 
     article_text = ""
 
-    # =========================================================
-    # TEXT
-    # =========================================================
-
     if input_mode == "📝 Paste Article":
 
-        st.subheader("Paste the news article")
+        st.subheader("Paste the news article or headline")
 
         article_text = st.text_area(
             "Article",
             placeholder=(
-                "Paste the complete news article or claim here..."
+                "Paste the news headline, claim, or complete article here to verify..."
             ),
-            height=280,
+            height=260,
             label_visibility="collapsed"
         )
 
         st.caption(
             f"{len(article_text):,} characters"
         )
-
-    # =========================================================
-    # IMAGE
-    # =========================================================
 
     else:
 
@@ -97,8 +84,7 @@ def show():
             with info_col:
 
                 st.info(
-                    "OCR will extract the text "
-                    "from this image."
+                    "OCR will extract the text from this image."
                 )
 
                 if st.button(
@@ -133,7 +119,7 @@ def show():
                                 st.session_state.extracted_text = ""
 
                                 st.warning(
-                                    "No readable text was found."
+                                    "No readable text was found in the image."
                                 )
 
                         except Exception as error:
@@ -163,15 +149,11 @@ def show():
 
     st.divider()
 
-    # =========================================================
-    # SETTINGS
-    # =========================================================
-
     st.subheader(
         "2. Verification settings"
     )
 
-    setting_col1, setting_col2 = st.columns(2)
+    setting_col1, setting_col2, setting_col3 = st.columns(3)
 
     with setting_col1:
 
@@ -194,11 +176,18 @@ def show():
             ]
         )
 
-    st.divider()
+    with setting_col3:
 
-    # =========================================================
-    # VERIFY
-    # =========================================================
+        decision_threshold = st.slider(
+            "ML Decision Threshold",
+            min_value=0.30,
+            max_value=0.70,
+            value=0.50,
+            step=0.05,
+            help="Probability cutoff for classifying text style as Real (Authentic). Default is 0.50."
+        )
+
+    st.divider()
 
     verify_clicked = st.button(
         "🔍 Verify This News",
@@ -208,195 +197,109 @@ def show():
 
     if verify_clicked:
 
-        verification_text = ""
-
-        # -----------------------------------------------------
-        # GET TEXT
-        # -----------------------------------------------------
+        raw_text = ""
 
         if input_mode == "📝 Paste Article":
-
-            if article_text.strip():
-
-                verification_text = clean_text(
-                    article_text
-                )
-
-            else:
-
-                st.warning(
-                    "Please paste an article first."
-                )
-
+            raw_text = article_text.strip()
         else:
+            raw_text = st.session_state.get("extracted_text", "").strip()
 
-            verification_text = st.session_state.get(
-                "extracted_text",
-                ""
-            )
+        is_valid, validation_msg = validate_input(raw_text)
 
-            if not verification_text:
-
-                st.warning(
-                    "Please extract text from the image first."
-                )
-
-        # -----------------------------------------------------
-        # RUN COMPLETE PIPELINE
-        # -----------------------------------------------------
-
-        if verification_text:
+        if not is_valid:
+            st.warning(f"⚠️ {validation_msg}")
+        else:
+            verification_text = clean_text(raw_text)
 
             with st.spinner(
-                "Verifi is analyzing the claim and searching evidence..."
+                "Verifi is analyzing linguistic patterns and searching authoritative evidence..."
             ):
 
-                # =============================================
-                # 1. MODEL PREDICTION
-                # =============================================
-
-                prediction = predict_news(
-                    verification_text
+                model_result = predict_news_detailed(
+                    verification_text,
+                    threshold=decision_threshold
                 )
-
-                # =============================================
-                # 2. CLAIM EXTRACTION
-                # =============================================
 
                 claims = extract_claims(
                     verification_text
                 )
-                print("\n" + "=" * 70)
-                print("VERIFI ACTUAL IMAGE CLAIMS")
-                print("=" * 70)
 
-                for i, claim in enumerate(claims, 1):
-                    print(f"CLAIM {i}: {claim}")
-                    
+                if not claims and verification_text:
+                    claims = [verification_text]
+
                 claim_results = []
-
-                # =============================================
-                # 3. EVIDENCE FOR EACH CLAIM
-                # =============================================
 
                 for claim in claims:
 
-                    if search_depth == "Deep investigation":
-
-                        evidence = collect_evidence(
-                            claim,
-                            max_results_per_query=10,
-                            max_evidence=20,
-                            deep=True,
-                            source_scope=source_scope
-                        )
-
-                    else:
-
-                        evidence = collect_evidence(
-                            claim,
-                            max_results_per_query=5,
-                            max_evidence=10,
-                            deep=False,
-                            source_scope=source_scope
-                        )
-
-                    # =========================================
-                    # 4. NLI
-                    # =========================================
+                    try:
+                        if search_depth == "Deep investigation":
+                            evidence = collect_evidence(
+                                claim,
+                                max_results_per_query=8,
+                                max_evidence=15,
+                                deep=True,
+                                source_scope=source_scope
+                            )
+                        else:
+                            evidence = collect_evidence(
+                                claim,
+                                max_results_per_query=4,
+                                max_evidence=8,
+                                deep=False,
+                                source_scope=source_scope
+                            )
+                    except Exception as err:
+                        evidence = []
 
                     analyzed_evidence = analyze_evidence(
                         claim,
                         evidence
                     )
 
-                    # =========================================
-                    # 5. CLAIM VERDICT
-                    # =========================================
-
                     claim_verdict = calculate_claim_verdict(
                         analyzed_evidence
                     )
 
+                    claim_model_res = predict_news_detailed(
+                        claim,
+                        threshold=decision_threshold
+                    )
+
                     if claim_verdict["verdict"] == "Supported":
-                        binary_claim_verdict = "REAL"
+                        claim_binary = "REAL"
                     elif claim_verdict["verdict"] == "Contradicted":
-                        binary_claim_verdict = "FAKE"
+                        claim_binary = "FAKE"
                     else:
-                        binary_claim_verdict = predict_news(
-                            claim
-                        ).upper()
+                        claim_binary = "UNVERIFIED"
 
                     claim_results.append(
                         {
                             "claim": claim,
-
-                            "binary_verdict": binary_claim_verdict,
-
-                            "verdict": claim_verdict[
-                                "verdict"
-                            ],
-
-                            "confidence": claim_verdict[
-                                "confidence"
-                            ],
-
-                            "support_score": claim_verdict[
-                                "support_score"
-                            ],
-
-                            "contradiction_score": claim_verdict[
-                                "contradiction_score"
-                            ],
-
-                            "supporting_sources": claim_verdict.get(
-                                "supporting_sources",
-                                0
-                            ),
-
-                            "contradicting_sources": claim_verdict.get(
-                                "contradicting_sources",
-                                0
-                            ),
-
-                            "independent_sources": claim_verdict.get(
-                                "independent_sources",
-                                0
-                            ),
-
+                            "binary_verdict": claim_binary,
+                            "verdict": claim_verdict["verdict"],
+                            "confidence": claim_verdict["confidence"],
+                            "support_score": claim_verdict["support_score"],
+                            "contradiction_score": claim_verdict["contradiction_score"],
+                            "supporting_sources": claim_verdict.get("supporting_sources", 0),
+                            "contradicting_sources": claim_verdict.get("contradicting_sources", 0),
+                            "independent_sources": claim_verdict.get("independent_sources", 0),
+                            "model_prediction": claim_model_res.get("prediction", "Uncertain"),
+                            "model_confidence": claim_model_res.get("confidence", 0.0),
                             "evidence": analyzed_evidence
                         }
                     )
 
-                # =============================================
-                # 6. OVERALL VERDICT
-                # =============================================
-
                 overall = calculate_overall_verdict(
                     claim_results,
-                    prediction
+                    fallback_verdict=model_result.get("prediction", "UNVERIFIED"),
+                    fallback_confidence=model_result.get("confidence", 0.0)
                 )
 
-            # -------------------------------------------------
-            # SAVE RESULT
-            # -------------------------------------------------
-
-            st.session_state.verification_input = (
-                verification_text
-            )
-
-            st.session_state.prediction = (
-                prediction
-            )
-
-            st.session_state.claim_results = (
-                claim_results
-            )
-
-            st.session_state.overall_verdict = (
-                overall
-            )
-
+            st.session_state.verification_input = verification_text
+            st.session_state.prediction = model_result.get("prediction", "Uncertain")
+            st.session_state.model_result = model_result
+            st.session_state.claim_results = claim_results
+            st.session_state.overall_verdict = overall
 
             save_verification(
                 verification_text,
@@ -405,18 +308,14 @@ def show():
             )
             st.session_state.verification_started = True
 
-    # =========================================================
-    # RESULTS
-    # =========================================================
-
     if st.session_state.get(
         "verification_started",
         False
     ):
 
-        prediction = st.session_state.get(
-            "prediction",
-            None
+        model_result = st.session_state.get(
+            "model_result",
+            {}
         )
 
         claim_results = st.session_state.get(
@@ -435,57 +334,49 @@ def show():
             "Verification Result"
         )
 
-        # =====================================================
-        # OVERALL VERDICT
-        # =====================================================
+        overall_verdict = overall.get("verdict", "UNVERIFIED")
+        overall_confidence = overall.get("confidence", 0.0)
+        decision_basis = overall.get("decision_basis", "model")
 
-        overall_verdict = overall.get(
-            "verdict",
-            prediction.upper() if prediction else "FAKE"
+        top_col1, top_col2, top_col3 = st.columns([1.5, 1, 1])
+
+        with top_col1:
+            if overall_verdict == "REAL":
+                st.success("🟢 REAL")
+                if decision_basis == "evidence":
+                    st.caption("Corroborated by independent reputable sources.")
+                else:
+                    st.caption("Linguistic style consistent with authentic reporting (no counter-evidence found).")
+            elif overall_verdict == "FAKE":
+                st.error("🔴 FAKE")
+                if decision_basis == "evidence":
+                    st.caption("Contradicted by credible primary or authoritative sources.")
+                else:
+                    st.caption("Linguistic patterns strongly characteristic of fabricated news.")
+            else:
+                st.warning("⚪ UNVERIFIED / INCONCLUSIVE")
+                st.caption("External source evidence is insufficient or inconclusive to confirm this claim.")
+
+        with top_col2:
+            st.metric(
+                "Evidence Confidence",
+                f"{overall_confidence * 100:.1f}%"
+            )
+
+        with top_col3:
+            ml_pred = model_result.get("prediction", "N/A")
+            ml_conf = model_result.get("confidence", 0.0)
+            st.metric(
+                "ML Stylistic Indicator",
+                f"{ml_pred} ({ml_conf * 100:.1f}%)"
+            )
+
+        st.info(
+            "ℹ️ **Methodology & System Transparency:** "
+            "Verifi combines a calibrated machine learning text classifier with live multi-source web evidence. "
+            "A machine learning model analyzes stylistic and lexical patterns, but cannot independently verify "
+            "real-time facts. Definitive factual truth is determined by authoritative corroborating sources."
         )
-
-        if overall_verdict not in {
-            "REAL",
-            "FAKE"
-        }:
-            overall_verdict = (
-                prediction.upper()
-                if prediction
-                else "FAKE"
-            )
-
-        overall_confidence = overall.get(
-            "confidence",
-            0.0
-        )
-
-        if overall_verdict == "REAL":
-
-            st.success(
-                "🟢 REAL"
-            )
-
-        else:
-
-            st.error(
-                "🔴 FAKE"
-            )
-
-        st.metric(
-            "Evidence Confidence",
-            f"{overall_confidence * 100:.1f}%"
-        )
-
-        if overall.get("decision_basis") == "model":
-            st.caption(
-                "Source evidence was unavailable or evenly balanced; "
-                "the classifier supplied the binary verdict."
-            )
-
-
-        # =====================================================
-        # CLAIMS
-        # =====================================================
 
         st.subheader(
             "Claim Analysis"
@@ -505,7 +396,7 @@ def show():
                 )
 
                 st.write(
-                    result["claim"]
+                    f"**Claim text:** {result['claim']}"
                 )
 
                 supporting = result.get(
@@ -523,74 +414,56 @@ def show():
                     0
                 )
 
-                m1, m2, m3 = st.columns(3)
+                m1, m2, m3, m4 = st.columns(4)
 
                 with m1:
-
                     st.metric(
-                        "Supporting",
+                        "Supporting Sources",
                         supporting
                     )
 
                 with m2:
-
                     st.metric(
-                        "Contradicting",
+                        "Contradicting Sources",
                         contradicting
                     )
 
                 with m3:
-
                     st.metric(
-                        "Independent Sources",
+                        "Independent Publishers",
                         independent
                     )
-                
+
+                with m4:
+                    claim_ml = result.get("model_prediction", "N/A")
+                    claim_conf = result.get("model_confidence", 0.0)
+                    st.metric(
+                        "Stylistic Model",
+                        f"{claim_ml} ({claim_conf * 100:.0f}%)"
+                    )
+
                 verdict = result.get(
-                    "binary_verdict"
+                    "binary_verdict",
+                    "UNVERIFIED"
                 )
 
-                if verdict not in {
-                    "REAL",
-                    "FAKE"
-                }:
-                    evidence_verdict = result.get(
-                        "verdict"
-                    )
-                    if evidence_verdict == "Supported":
-                        verdict = "REAL"
-                    elif evidence_verdict == "Contradicted":
-                        verdict = "FAKE"
-                    else:
-                        verdict = predict_news(
-                            result["claim"]
-                        ).upper()
-
-                confidence = result[
-                    "confidence"
-                ]
+                confidence = result.get(
+                    "confidence",
+                    0.0
+                )
 
                 if verdict == "REAL":
-
                     st.success(
-                        f"🟢 REAL — "
-                        f"{confidence * 100:.1f}%"
+                        f"🟢 REAL (Supported by sources — {confidence * 100:.1f}%)"
                     )
-
-                else:
-
+                elif verdict == "FAKE":
                     st.error(
-                        f"🔴 FAKE — "
-                        f"{confidence * 100:.1f}%"
+                        f"🔴 FAKE (Contradicted by sources — {confidence * 100:.1f}%)"
                     )
-
-                # =================================================
-                # EVIDENCE
-                # =================================================
-
-                st.write(
-                    "Evidence"
-                )
+                else:
+                    st.warning(
+                        "⚪ UNVERIFIED (No definitive corroboration found in queried sources)"
+                    )
 
                 evidence = result.get(
                     "evidence",
@@ -598,9 +471,11 @@ def show():
                 )
 
                 if not evidence:
-                    st.info(
-                        "No relevant source passages were found for this claim."
+                    st.caption(
+                        "No relevant authoritative source passages were discovered for this claim."
                     )
+                else:
+                    st.write(f"**Discovered Evidence ({len(evidence)} sources):**")
 
                 for evidence_number, item in enumerate(
                     evidence[:5],
@@ -608,18 +483,13 @@ def show():
                 ):
 
                     with st.expander(
-                        f"{evidence_number}. "
-                        f"{item.get('title', 'Source')}"
+                        f"{evidence_number}. {item.get('title', 'Source')}"
                     ):
 
                         st.write(
-                            f"**Source:** "
-                            f"{item.get('domain', '')}"
-                        )
-
-                        st.write(
-                            f"**Type:** "
-                            f"{item.get('source_type', '')}"
+                            f"**Domain:** `{item.get('domain', '')}` | "
+                            f"**Category:** {item.get('source_type', 'Other')} | "
+                            f"**Authority Score:** {item.get('source_score', 0)}/100"
                         )
 
                         relationship = item.get(
@@ -627,19 +497,19 @@ def show():
                             "neutral"
                         )
                         relationship_label = {
-                            "entailment": "Supports this claim",
-                            "contradiction": "Contradicts this claim"
+                            "entailment": "✅ Supports this claim",
+                            "contradiction": "❌ Contradicts this claim"
                         }.get(
                             relationship,
-                            "No clear relation"
+                            "ℹ️ Neutral / No clear relation"
                         )
 
                         st.write(
-                            f"**Relation:** {relationship_label}"
+                            f"**Evidence Relation:** {relationship_label}"
                         )
 
                         st.write(
-                            f"**NLI confidence:** "
+                            f"**NLI Semantic Confidence:** "
                             f"{item.get('nli_confidence', 0) * 100:.1f}%"
                         )
 
@@ -652,21 +522,13 @@ def show():
                         )
 
                         if passage:
-                            st.write(passage)
+                            st.write(f"> {passage}")
 
-                        st.markdown(
-                            f"[Open source]({item.get('url', '')})"
-                        )
-
-        if not claim_results:
-            st.info(
-                "No claims or source passages were available; "
-                "the binary result uses the article classifier."
-            )
-
-        # =====================================================
-        # ANALYZED CONTENT
-        # =====================================================
+                        url = item.get("url", "")
+                        if url:
+                            st.markdown(
+                                f"[🔗 Open original source]({url})"
+                            )
 
         st.subheader(
             "Analyzed Content"

@@ -8,12 +8,7 @@ from evidence.evidence_engine import collect_evidence
 from evidence.evidence_analyzer import analyze_evidence
 from evidence.verdict_engine import calculate_claim_verdict
 
-
 TEST_CASES = [
-
-    # =====================================================
-    # REAL — 5
-    # =====================================================
 
     {
         "id": "REAL-1",
@@ -45,11 +40,6 @@ TEST_CASES = [
         "claim": "Mount Everest is the highest mountain above sea level."
     },
 
-
-    # =====================================================
-    # FALSE — 5
-    # =====================================================
-
     {
         "id": "FALSE-1",
         "expected": "Contradicted",
@@ -79,11 +69,6 @@ TEST_CASES = [
         "expected": "Contradicted",
         "claim": "Water freezes at 50 degrees Celsius at standard atmospheric pressure."
     },
-
-
-    # =====================================================
-    # UNVERIFIED — 5
-    # =====================================================
 
     {
         "id": "UNVERIFIED-1",
@@ -115,11 +100,6 @@ TEST_CASES = [
         "claim": "Researchers have found a lake beneath the Sahara Desert containing a previously unknown civilization."
     },
 
-
-    # =====================================================
-    # MIXED / PRECISE CLAIMS — 5
-    # =====================================================
-
     {
         "id": "MIXED-1",
         "expected": "Unverified",
@@ -150,7 +130,6 @@ TEST_CASES = [
         "claim": "Humans will establish a permanent settlement on Mars with more than 1,000 residents by 2040."
     }
 ]
-
 
 print("=" * 70)
 print("VERIFI 20-CASE BLIND VERIFICATION TEST")
@@ -273,11 +252,6 @@ for test in TEST_CASES:
         print(
             "STATUS: FAIL"
         )
-
-
-# =========================================================
-# FINAL SUMMARY
-# =========================================================
 
 passed_count = sum(
     results

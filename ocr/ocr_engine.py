@@ -3,13 +3,11 @@ from functools import lru_cache
 import numpy as np
 from PIL import Image
 
-
 @lru_cache(maxsize=1)
 def _get_reader():
     import easyocr
 
     return easyocr.Reader(["en"], gpu=False)
-
 
 def extract_text_from_image(image_file) -> str:
     if image_file is None:

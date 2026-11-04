@@ -1,13 +1,8 @@
 import streamlit as st
 
-
 def render_sidebar():
 
     with st.sidebar:
-
-        # ================================
-        # BRAND
-        # ================================
 
         st.image(
             "assets/images/verifi_logo.png",
@@ -20,16 +15,8 @@ def render_sidebar():
 
         st.divider()
 
-        # ================================
-        # DEFAULT PAGE
-        # ================================
-
         if "navigation" not in st.session_state:
-            st.session_state.navigation = "Home"
-
-        # ================================
-        # NAVIGATION BUTTONS
-        # ================================
+            st.session_state.navigation = st.session_state.get("page", "Home")
 
         st.caption("NAVIGATION")
 
@@ -54,12 +41,9 @@ def render_sidebar():
             ):
 
                 st.session_state.navigation = page
+                st.session_state.page = page
 
                 st.rerun()
-
-        # ================================
-        # SYSTEM STATUS
-        # ================================
 
         st.divider()
 
@@ -72,10 +56,6 @@ def render_sidebar():
         st.caption(
             "NLP  •  OCR  •  Evidence  •  NLI"
         )
-
-        # ================================
-        # FOOTER
-        # ================================
 
         st.divider()
 

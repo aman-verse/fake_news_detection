@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-
 PROJECT_ROOT = (
     Path(__file__).resolve().parent.parent
 )
@@ -11,16 +10,10 @@ sys.path.insert(
     str(PROJECT_ROOT)
 )
 
-
 from evidence.verdict_engine import (
     calculate_claim_verdict,
     calculate_overall_verdict
 )
-
-
-# =========================================================
-# TEST 1 — STRONG SUPPORT
-# =========================================================
 
 supporting_evidence = [
 
@@ -58,11 +51,6 @@ supporting_evidence = [
     }
 ]
 
-
-# =========================================================
-# TEST 2 — STRONG CONTRADICTION
-# =========================================================
-
 contradicting_evidence = [
 
     {
@@ -99,11 +87,6 @@ contradicting_evidence = [
     }
 ]
 
-
-# =========================================================
-# TEST 3 — MIXED EVIDENCE
-# =========================================================
-
 mixed_evidence = [
 
     {
@@ -129,11 +112,9 @@ mixed_evidence = [
     }
 ]
 
-
 print("=" * 70)
 print("VERIFI VERDICT ENGINE TEST")
 print("=" * 70)
-
 
 for name, evidence in [
     ("STRONG SUPPORT", supporting_evidence),
@@ -195,11 +176,6 @@ assert calculate_claim_verdict(
     mixed_evidence
 )["verdict"] == "Unverified"
 
-
-# =========================================================
-# OVERALL TEST
-# =========================================================
-
 print(
     "\n" + "=" * 70
 )
@@ -225,7 +201,6 @@ claim_results = [
     }
 
 ]
-
 
 overall = calculate_overall_verdict(
     claim_results,

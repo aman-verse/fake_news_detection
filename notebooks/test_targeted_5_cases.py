@@ -8,7 +8,6 @@ from evidence.evidence_engine import collect_evidence
 from evidence.evidence_analyzer import analyze_evidence
 from evidence.verdict_engine import calculate_claim_verdict
 
-
 tests = [
     (
         "REAL-1",
@@ -37,15 +36,12 @@ tests = [
     )
 ]
 
-
 print("=" * 70)
 print("VERIFI 5-CASE TARGETED TEST")
 print("=" * 70)
 
-
 passed = 0
 failed = 0
-
 
 for name, claim, expected in tests:
 
@@ -114,7 +110,6 @@ for name, claim, expected in tests:
 
         print("STATUS: FAIL")
         failed += 1
-
 
 print("\n" + "=" * 70)
 print("FINAL 5-CASE SUMMARY")

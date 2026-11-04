@@ -9,7 +9,6 @@ from evidence.evidence_engine import collect_evidence
 from evidence.evidence_analyzer import analyze_evidence
 from evidence.verdict_engine import calculate_claim_verdict
 
-
 claim = (
     "China is currently the world's most populous country, "
     "ahead of India."
@@ -21,11 +20,6 @@ print("=" * 70)
 
 print("\nCLAIM:")
 print(claim)
-
-
-# =========================================================
-# QUERIES
-# =========================================================
 
 queries = build_search_queries(
     claim,
@@ -43,11 +37,6 @@ for i, query in enumerate(
     print(
         f"{i}. {query}"
     )
-
-
-# =========================================================
-# EVIDENCE
-# =========================================================
 
 evidence = collect_evidence(
     claim,
@@ -116,11 +105,6 @@ for i, item in enumerate(
         )[:1000]
     )
 
-
-# =========================================================
-# NLI
-# =========================================================
-
 analyzed = analyze_evidence(
     claim,
     evidence
@@ -175,11 +159,6 @@ for i, item in enumerate(
             0
         )
     )
-
-
-# =========================================================
-# VERDICT
-# =========================================================
 
 result = calculate_claim_verdict(
     analyzed

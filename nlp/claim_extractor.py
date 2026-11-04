@@ -1,10 +1,5 @@
 import re
 
-
-# =========================================================
-# OCR GARBAGE DETECTION
-# =========================================================
-
 def looks_like_garbage(text: str) -> bool:
 
     if not text:
@@ -33,11 +28,6 @@ def looks_like_garbage(text: str) -> bool:
 
     return False
 
-
-# =========================================================
-# CLEAN OCR FRAGMENTS
-# =========================================================
-
 def clean_claim(text: str) -> str:
 
     if not text:
@@ -45,7 +35,6 @@ def clean_claim(text: str) -> str:
 
     text = text.strip()
 
-    # Remove obvious OCR fragments at the beginning.
     text = re.sub(
         r"^(?:world\s+)?india\s+",
         "India ",
@@ -53,7 +42,6 @@ def clean_claim(text: str) -> str:
         flags=re.IGNORECASE
     )
 
-    # Fix common OCR error in "for a"
     text = re.sub(
         r"\bfor\s+ala\s+first\b",
         "for the first",
@@ -61,7 +49,6 @@ def clean_claim(text: str) -> str:
         flags=re.IGNORECASE
     )
 
-    # Remove duplicated spaces
     text = re.sub(
         r"\s+",
         " ",
@@ -70,21 +57,12 @@ def clean_claim(text: str) -> str:
 
     return text
 
-
-# =========================================================
-# EXTRACT HEADLINE CLAIM
-# =========================================================
-
 def extract_headline_claim(text: str) -> str:
 
     if not text:
         return ""
 
     lower = text.lower()
-
-    # -----------------------------------------------------
-    # Specific pattern for the current newspaper layout.
-    # -----------------------------------------------------
 
     match = re.search(
         r"(?:world\s+)?india\s+overtakes\s+china\s+"
@@ -99,10 +77,6 @@ def extract_headline_claim(text: str) -> str:
             "India overtakes China for the first time "
             "to become world's most populous country."
         )
-
-    # -----------------------------------------------------
-    # General "India overtakes China" pattern.
-    # -----------------------------------------------------
 
     match = re.search(
         r"india\s+(?:has\s+)?overtaken\s+china\s+"
@@ -120,15 +94,10 @@ def extract_headline_claim(text: str) -> str:
 
     return ""
 
-
-# =========================================================
-# NORMAL SENTENCE EXTRACTION
-# =========================================================
-
-def extract_normal_claims(text: str) -> list[str]:
+def extract_normal_claims(text: str, min_words: int = 3) -> list[str]:
 
     sentences = re.split(
-        r"(?<=[.!?])\s+",
+        r"(?<=[.!?])\s+|\n+",
         text
     )
 
@@ -143,7 +112,8 @@ def extract_normal_claims(text: str) -> list[str]:
         if not sentence:
             continue
 
-        if len(sentence.split()) < 6:
+        words = sentence.split()
+        if len(words) < min_words:
             continue
 
         if looks_like_garbage(
@@ -151,8 +121,7 @@ def extract_normal_claims(text: str) -> list[str]:
         ):
             continue
 
-        # Ignore extremely long OCR blocks.
-        if len(sentence.split()) > 45:
+        if len(words) > 60:
             continue
 
         claims.append(
@@ -161,17 +130,11 @@ def extract_normal_claims(text: str) -> list[str]:
 
     return claims
 
-
-# =========================================================
-# MAIN CLAIM EXTRACTION
-# =========================================================
-
 def extract_claims(text: str) -> list[str]:
 
     if not text:
         return []
 
-    # Normalize whitespace
     text = re.sub(
         r"\s+",
         " ",
@@ -183,10 +146,6 @@ def extract_claims(text: str) -> list[str]:
 
     claims = []
 
-    # =====================================================
-    # FIRST: LOOK FOR A HEADLINE
-    # =====================================================
-
     headline_claim = extract_headline_claim(
         text
     )
@@ -197,12 +156,9 @@ def extract_claims(text: str) -> list[str]:
             headline_claim
         )
 
-    # =====================================================
-    # SECOND: NORMAL SENTENCES
-    # =====================================================
-
     normal_claims = extract_normal_claims(
-        text
+        text,
+        min_words=3
     )
 
     for claim in normal_claims:
@@ -217,9 +173,11 @@ def extract_claims(text: str) -> list[str]:
             claim
         )
 
-    # =====================================================
-    # REMOVE DUPLICATES
-    # =====================================================
+    if not claims:
+
+        clean_raw = clean_claim(text)
+        if len(clean_raw.split()) >= 3 and not looks_like_garbage(clean_raw):
+            claims.append(clean_raw)
 
     unique_claims = []
 

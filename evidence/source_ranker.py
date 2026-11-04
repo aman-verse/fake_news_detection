@@ -1,10 +1,5 @@
 from urllib.parse import urlparse
 
-
-# =========================================================
-# SOURCE CATEGORIES
-# =========================================================
-
 OFFICIAL_DOMAINS = {
     "gov.in",
     "nic.in",
@@ -22,12 +17,7 @@ OFFICIAL_DOMAINS = {
     "un.org"
 }
 
-
 TRUSTED_NEWS_SCORES = {
-
-    # =====================================================
-    # INTERNATIONAL — VERY HIGH CREDIBILITY
-    # =====================================================
 
     "reuters.com": 98,
     "apnews.com": 98,
@@ -49,10 +39,6 @@ TRUSTED_NEWS_SCORES = {
     "nbcnews.com": 90,
     "cnbc.com": 90,
 
-    # =====================================================
-    # INDIA — ESTABLISHED NEWS
-    # =====================================================
-
     "thehindu.com": 94,
     "sportstar.thehindu.com": 94,
     "indianexpress.com": 92,
@@ -70,10 +56,6 @@ TRUSTED_NEWS_SCORES = {
     "firstpost.com": 85,
     "outlookindia.com": 84,
 
-    # =====================================================
-    # FACT CHECK
-    # =====================================================
-
     "snopes.com": 95,
     "politifact.com": 95,
     "factcheck.org": 95,
@@ -81,10 +63,6 @@ TRUSTED_NEWS_SCORES = {
     "altnews.in": 94,
     "afp.com": 93,
     "thequint.com": 84,
-
-        # =====================================================
-    # REFERENCE / SCIENCE
-    # =====================================================
 
     "britannica.com": 94,
     "nationalgeographic.com": 93,
@@ -94,7 +72,6 @@ TRUSTED_NEWS_SCORES = {
 
 }
 
-
 FACT_CHECK_DOMAINS = {
     "snopes.com",
     "politifact.com",
@@ -102,7 +79,6 @@ FACT_CHECK_DOMAINS = {
     "boomlive.in",
     "altnews.in"
 }
-
 
 SOCIAL_DOMAINS = {
     "x.com",
@@ -112,11 +88,6 @@ SOCIAL_DOMAINS = {
     "youtube.com",
     "linkedin.com"
 }
-
-
-# =========================================================
-# DOMAIN EXTRACTION
-# =========================================================
 
 def get_domain(url):
 
@@ -194,12 +165,7 @@ def get_publisher_id(domain):
         if domain in domains:
             return publisher
 
-    # For unknown publishers, use the domain itself
     return domain
-
-# =========================================================
-# DOMAIN MATCHING
-# =========================================================
 
 def matches_domain(
     domain,
@@ -213,11 +179,6 @@ def matches_domain(
         )
     )
 
-
-# =========================================================
-# SOURCE CLASSIFICATION
-# =========================================================
-
 def classify_source(url):
 
     domain = get_domain(url)
@@ -226,7 +187,6 @@ def classify_source(url):
 
         return "Unknown", 0
 
-    # Official / government
     for trusted_domain in OFFICIAL_DOMAINS:
 
         if matches_domain(
@@ -236,7 +196,6 @@ def classify_source(url):
 
             return "Official", 100
 
-    # Fact checking
     for trusted_domain in FACT_CHECK_DOMAINS:
 
         if matches_domain(
@@ -246,7 +205,6 @@ def classify_source(url):
 
             return "Fact Check", 95
 
-    # Established news
     for trusted_domain, score in TRUSTED_NEWS_SCORES.items():
 
         if matches_domain(
@@ -256,7 +214,6 @@ def classify_source(url):
 
            return "Trusted News", score
 
-    # Social media
     for trusted_domain in SOCIAL_DOMAINS:
 
         if matches_domain(
@@ -266,7 +223,6 @@ def classify_source(url):
 
             return "Social Media", 45
 
-    # Unknown
     return "Other", 30
 
 def apply_domain_diversity(
@@ -309,74 +265,6 @@ def apply_domain_diversity(
 
     return diversified
 
-    diversified = []
-
-    publisher_counts = {}
-
-    # =====================================================
-    # ROUND 1
-    # One result from each publisher
-    # =====================================================
-
-    for result in results:
-
-        publisher = result.get(
-            "publisher_id",
-            result.get("domain", "")
-        ).lower()
-
-        if not publisher:
-            continue
-
-        if publisher in publisher_counts:
-            continue
-
-        publisher_counts[publisher] = 1
-
-        diversified.append(
-            result
-        )
-
-    # =====================================================
-    # ROUND 2
-    # Allow second result from a publisher
-    # =====================================================
-
-    for result in results:
-
-        if len(diversified) >= len(results):
-            break
-
-        publisher = result.get(
-            "publisher_id",
-            result.get("domain", "")
-        ).lower()
-
-        if not publisher:
-            continue
-
-        count = publisher_counts.get(
-            publisher,
-            0
-        )
-
-        if count >= max_per_publisher:
-            continue
-
-        publisher_counts[publisher] = (
-            count + 1
-        )
-
-        diversified.append(
-            result
-        )
-
-    return diversified
-
-# =========================================================
-# RANK SEARCH RESULTS
-# =========================================================
-
 def rank_sources(results):
 
     ranked_results = []
@@ -416,10 +304,6 @@ def rank_sources(results):
         ],
         reverse=True
     )
-
-    # -----------------------------------------------------
-    # SOURCE DIVERSITY
-    # -----------------------------------------------------
 
     ranked_results = apply_domain_diversity(
        ranked_results,

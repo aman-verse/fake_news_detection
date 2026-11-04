@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-
 PROJECT_ROOT = (
     Path(__file__).resolve().parent.parent
 )
@@ -11,17 +10,14 @@ sys.path.insert(
     str(PROJECT_ROOT)
 )
 
-
 from evidence.evidence_engine import (
     collect_evidence
 )
-
 
 claim = (
     "The Government of India announced "
     "a new education policy"
 )
-
 
 print("=" * 70)
 print("VERIFI FULL EVIDENCE ENGINE TEST")
@@ -38,12 +34,10 @@ evidence = collect_evidence(
     max_evidence=10
 )
 
-
 print(
     "\nTotal evidence sources:",
     len(evidence)
 )
-
 
 for number, item in enumerate(
     evidence,

@@ -13,7 +13,6 @@ from evidence.evidence_analyzer import (
     analyze_claim_against_evidence
 )
 
-
 tests = [
 
     (
@@ -42,11 +41,9 @@ tests = [
     )
 ]
 
-
 print("=" * 70)
 print("VERIFI NLI DIRECTNESS TEST")
 print("=" * 70)
-
 
 for i, (claim, evidence) in enumerate(
     tests,

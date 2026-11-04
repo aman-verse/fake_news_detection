@@ -10,18 +10,12 @@ from views.verify import show as show_verify
 from views.history import show as show_history
 from views.about import show as show_about
 
-
 st.set_page_config(
     page_title=APP_NAME,
     page_icon="assets/images/tab_icon.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-
-# =========================================================
-# SESSION STATE
-# =========================================================
 
 if "page" not in st.session_state:
     st.session_state.page = "Home"
@@ -38,17 +32,7 @@ if "verification_input" not in st.session_state:
 if "extracted_text" not in st.session_state:
     st.session_state.extracted_text = ""
 
-
-# =========================================================
-# SIDEBAR
-# =========================================================
-
 selected_page = render_sidebar()
-
-
-# =========================================================
-# PAGE
-# =========================================================
 
 if selected_page == "Home":
 
@@ -65,10 +49,5 @@ elif selected_page == "History":
 elif selected_page == "About":
 
     show_about()
-
-
-# =========================================================
-# FOOTER
-# =========================================================
 
 render_footer()

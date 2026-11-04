@@ -18,11 +18,9 @@ since the last census. According to UN estimates, India will
 continue to experience population growth over the next decade.
 """
 
-
 claims = extract_claims(
     text
 )
-
 
 print("=" * 70)
 print("VERIFI CLAIM EXTRACTION TEST")

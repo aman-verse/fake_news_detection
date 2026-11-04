@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 HISTORY_DIR = BASE_DIR / "history"
@@ -14,13 +13,11 @@ HISTORY_DIR.mkdir(
 
 DATABASE_PATH = HISTORY_DIR / "verifi_history.db"
 
-
 def get_connection():
 
     return sqlite3.connect(
         DATABASE_PATH
     )
-
 
 def create_history_table():
 
@@ -58,7 +55,6 @@ def create_history_table():
     connection.commit()
 
     connection.close()
-
 
 def save_verification(
     input_text,
@@ -134,7 +130,6 @@ def save_verification(
 
     connection.close()
 
-
 def get_history():
 
     connection = get_connection()
@@ -167,7 +162,6 @@ def get_history():
 
     return rows
 
-
 def delete_history_item(
     verification_id
 ):
@@ -189,6 +183,5 @@ def delete_history_item(
     connection.commit()
 
     connection.close()
-
 
 create_history_table()

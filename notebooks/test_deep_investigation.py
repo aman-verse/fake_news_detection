@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-
 PROJECT_ROOT = (
     Path(__file__).resolve().parent.parent
 )
@@ -11,28 +10,22 @@ sys.path.insert(
     str(PROJECT_ROOT)
 )
 
-
 from evidence.evidence_engine import (
     collect_evidence
 )
-
 
 claim = (
     "Virat Kohli was found dead in a river"
 )
 
-
 print("=" * 70)
 print("VERIFI DEEP INVESTIGATION TEST")
 print("=" * 70)
 
-
 print("\nClaim:")
 print(claim)
 
-
 print("\nRunning deep investigation...")
-
 
 evidence = collect_evidence(
     claim,
@@ -41,12 +34,10 @@ evidence = collect_evidence(
     deep=True
 )
 
-
 print(
     "\nTotal evidence:",
     len(evidence)
 )
-
 
 for number, item in enumerate(
     evidence,

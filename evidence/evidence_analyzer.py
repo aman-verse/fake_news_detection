@@ -1,7 +1,7 @@
 import re
+from functools import lru_cache
 
 import torch
-
 from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification
@@ -11,52 +11,21 @@ from evidence.fact_checker import (
     fact_check
 )
 
+MODEL_NAME = "cross-encoder/nli-MiniLM2-L6-H768"
 
-MODEL_NAME = (
-    "cross-encoder/nli-MiniLM2-L6-H768"
-)
-
-
-# =========================================================
-# LOAD MODEL
-# =========================================================
-
-tokenizer = AutoTokenizer.from_pretrained(
-    MODEL_NAME
-)
-
-model = AutoModelForSequenceClassification.from_pretrained(
-    MODEL_NAME
-)
-
-model.eval()
-
-
-# =========================================================
-# LABELS
-# =========================================================
-
-def get_model_labels():
+@lru_cache(maxsize=1)
+def get_nli_components():
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME)
+    model.eval()
 
     labels = {}
-
     for index, label in model.config.id2label.items():
-
         label = label.lower()
-
         if not label.startswith("label_"):
-
             labels[index] = label
 
-    return labels
-
-
-MODEL_LABELS = get_model_labels()
-
-
-# =========================================================
-# NORMALIZE
-# =========================================================
+    return tokenizer, model, labels
 
 def normalize_claim(claim):
 
@@ -68,11 +37,6 @@ def normalize_claim(claim):
         " ",
         claim.strip()
     )
-
-
-# =========================================================
-# NLI
-# =========================================================
 
 def analyze_claim_against_evidence(
     claim,
@@ -95,6 +59,8 @@ def analyze_claim_against_evidence(
     )
 
     evidence_text = evidence_text.strip()
+
+    tokenizer, model, model_labels = get_nli_components()
 
     inputs = tokenizer(
         evidence_text,
@@ -119,7 +85,7 @@ def analyze_claim_against_evidence(
     contradiction_index = None
     neutral_index = None
 
-    for index, label in MODEL_LABELS.items():
+    for index, label in model_labels.items():
 
         if "entail" in label:
             entailment_index = index
@@ -192,11 +158,6 @@ def analyze_claim_against_evidence(
         "directness": 0.0
     }
 
-
-# =========================================================
-# ANALYZE ALL EVIDENCE
-# =========================================================
-
 def analyze_evidence(
     claim,
     evidence
@@ -225,10 +186,6 @@ def analyze_evidence(
 
         directness = 0.0
 
-        # =================================================
-        # FACT CHECK OVERRIDES WEAK / WRONG NLI
-        # =================================================
-
         if structured["relation"] == "support":
 
             relationship = "entailment"
@@ -241,7 +198,6 @@ def analyze_evidence(
 
         else:
 
-            # Generic NLI is accepted only when strong.
             if (
                 nli["label"] == "entailment"
                 and nli["entailment"] >= 0.75
@@ -297,11 +253,6 @@ def analyze_evidence(
         })
 
     return analyzed
-
-
-# =========================================================
-# SUMMARY
-# =========================================================
 
 def summarize_evidence(
     analyzed_evidence

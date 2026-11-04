@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-
 PROJECT_ROOT = (
     Path(__file__).resolve().parent.parent
 )
@@ -11,17 +10,14 @@ sys.path.insert(
     str(PROJECT_ROOT)
 )
 
-
 from evidence.evidence_analyzer import (
     analyze_claim_against_evidence
 )
-
 
 claim = (
     "Virat Kohli is alive and continues "
     "to play cricket."
 )
-
 
 tests = [
 
@@ -41,7 +37,6 @@ tests = [
     )
 
 ]
-
 
 for number, (claim, evidence) in enumerate(
     tests,
@@ -78,7 +73,6 @@ for number, (claim, evidence) in enumerate(
         "CONFIDENCE:",
         result["confidence"]
     )
-
 
 print("=" * 70)
 print("VERIFI NLI TEST")

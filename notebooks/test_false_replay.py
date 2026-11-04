@@ -7,7 +7,6 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from evidence.evidence_analyzer import analyze_evidence
 from evidence.verdict_engine import calculate_claim_verdict
 
-
 claim = (
     "China is currently the world's most populous country, "
     "ahead of India."
@@ -88,7 +87,6 @@ evidence = [
     }
 ]
 
-
 print("=" * 70)
 print("VERIFI FALSE CLAIM FAST REPLAY")
 print("=" * 70)
@@ -115,7 +113,6 @@ for item in analyzed:
         "NLI confidence:",
         item.get("nli_confidence")
     )
-
 
 result = calculate_claim_verdict(
     analyzed

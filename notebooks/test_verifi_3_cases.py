@@ -14,7 +14,6 @@ from evidence.evidence_engine import collect_evidence
 from evidence.evidence_analyzer import analyze_evidence
 from evidence.verdict_engine import calculate_claim_verdict
 
-
 TESTS = [
 
     (
@@ -34,11 +33,9 @@ TESTS = [
     )
 ]
 
-
 print("=" * 70)
 print("VERIFI 3-CASE INTEGRATION TEST")
 print("=" * 70)
-
 
 for name, claim in TESTS:
 
@@ -48,10 +45,6 @@ for name, claim in TESTS:
 
     print("CLAIM:")
     print(claim)
-
-    # -------------------------------------------------
-    # Evidence
-    # -------------------------------------------------
 
     evidence = collect_evidence(
         claim,
@@ -64,18 +57,10 @@ for name, claim in TESTS:
         len(evidence)
     )
 
-    # -------------------------------------------------
-    # NLI
-    # -------------------------------------------------
-
     analyzed = analyze_evidence(
         claim,
         evidence
     )
-
-    # -------------------------------------------------
-    # Verdict
-    # -------------------------------------------------
 
     verdict = calculate_claim_verdict(
         analyzed
@@ -122,10 +107,6 @@ for name, claim in TESTS:
             "contradicting_sources"
         )
     )
-
-    # -------------------------------------------------
-    # Relationships
-    # -------------------------------------------------
 
     print("\nNLI RESULTS:")
 

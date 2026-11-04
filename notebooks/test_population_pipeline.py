@@ -1,11 +1,6 @@
 import sys
 from pathlib import Path
 
-
-# =========================================================
-# PROJECT PATH
-# =========================================================
-
 PROJECT_ROOT = (
     Path(__file__).resolve().parent.parent
 )
@@ -15,25 +10,14 @@ sys.path.insert(
     str(PROJECT_ROOT)
 )
 
-
-# =========================================================
-# IMPORT VERIFI COMPONENTS
-# =========================================================
-
 from evidence.evidence_engine import collect_evidence
 from evidence.evidence_analyzer import analyze_evidence
 from evidence.verdict_engine import calculate_claim_verdict
-
-
-# =========================================================
-# EXACT CLEAN CLAIM
-# =========================================================
 
 claim = (
     "India has overtaken China to become "
     "the world's most populous country."
 )
-
 
 print("=" * 70)
 print("VERIFI POPULATION CLAIM DIAGNOSTIC")
@@ -42,15 +26,9 @@ print("=" * 70)
 print("\nCLAIM:")
 print(claim)
 
-
-# =========================================================
-# STEP 1 — COLLECT EVIDENCE
-# =========================================================
-
 print("\n" + "=" * 70)
 print("STEP 1: COLLECTING EVIDENCE")
 print("=" * 70)
-
 
 evidence = collect_evidence(
     claim,
@@ -60,16 +38,10 @@ evidence = collect_evidence(
     source_scope="Trusted news + official sources"
 )
 
-
 print(
     "\nEvidence returned:",
     len(evidence)
 )
-
-
-# =========================================================
-# SHOW RETRIEVED EVIDENCE
-# =========================================================
 
 for i, item in enumerate(
     evidence,
@@ -120,21 +92,14 @@ for i, item in enumerate(
         )
     )
 
-
-# =========================================================
-# STEP 2 — NLI
-# =========================================================
-
 print("\n" + "=" * 70)
 print("STEP 2: NLI ANALYSIS")
 print("=" * 70)
-
 
 analyzed = analyze_evidence(
     claim,
     evidence
 )
-
 
 for i, item in enumerate(
     analyzed,
@@ -185,20 +150,13 @@ for i, item in enumerate(
         )
     )
 
-
-# =========================================================
-# STEP 3 — VERDICT
-# =========================================================
-
 print("\n" + "=" * 70)
 print("STEP 3: CLAIM VERDICT")
 print("=" * 70)
 
-
 result = calculate_claim_verdict(
     analyzed
 )
-
 
 print(
     "\nVerdict:",
@@ -248,7 +206,6 @@ print(
         "independent_sources"
     )
 )
-
 
 print("\n" + "=" * 70)
 print("DIAGNOSTIC COMPLETE")

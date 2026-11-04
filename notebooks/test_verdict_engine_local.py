@@ -11,7 +11,6 @@ sys.path.append(
 
 from evidence.verdict_engine import calculate_claim_verdict
 
-
 def make_evidence(
     relationship,
     entailment,
@@ -29,7 +28,6 @@ def make_evidence(
         "relevance": relevance,
         "publisher_id": publisher
     }
-
 
 tests = [
 
@@ -101,11 +99,9 @@ tests = [
     )
 ]
 
-
 print("=" * 70)
 print("VERIFI LOCAL VERDICT ENGINE TEST")
 print("=" * 70)
-
 
 for name, evidence in tests:
 

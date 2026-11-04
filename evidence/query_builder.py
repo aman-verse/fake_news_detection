@@ -1,6 +1,5 @@
 import re
 
-
 def clean_claim(claim):
 
     return re.sub(
@@ -8,7 +7,6 @@ def clean_claim(claim):
         " ",
         claim.strip()
     )
-
 
 def build_search_queries(
     claim,
@@ -26,10 +24,6 @@ def build_search_queries(
         claim,
         f'"{claim}"'
     ]
-
-    # =====================================================
-    # SCIENTIFIC / PHYSICAL FACTS
-    # =====================================================
 
     if any(
         word in lower
@@ -55,10 +49,6 @@ def build_search_queries(
             claim + " NOAA"
         ])
 
-    # =====================================================
-    # WATER FREEZING
-    # =====================================================
-
     if (
         "water" in lower
         and any(
@@ -81,10 +71,6 @@ def build_search_queries(
             "site:usgs.gov water freezing point"
         ])
 
-    # =====================================================
-    # EARTH / SUN
-    # =====================================================
-
     if (
         "earth" in lower
         and "sun" in lower
@@ -97,10 +83,6 @@ def build_search_queries(
             "Earth orbit Sun official"
         ])
 
-    # =====================================================
-    # EVEREST
-    # =====================================================
-
     if "everest" in lower:
 
         queries.extend([
@@ -111,10 +93,6 @@ def build_search_queries(
             "Mount Everest highest point sea level Britannica"
         ])
 
-    # =====================================================
-    # OCEANS
-    # =====================================================
-
     if "ocean" in lower:
 
         queries.extend([
@@ -123,10 +101,6 @@ def build_search_queries(
             "Pacific Ocean largest ocean NOAA",
             "largest ocean on Earth official"
         ])
-
-    # =====================================================
-    # POPULATION
-    # =====================================================
 
     if (
         "population" in lower
@@ -139,10 +113,6 @@ def build_search_queries(
             claim + " population latest",
             claim + " population ranking"
         ])
-
-    # =====================================================
-    # HISTORICAL CLAIMS
-    # =====================================================
 
     if any(
         word in lower
@@ -162,10 +132,6 @@ def build_search_queries(
             claim + " historical source"
         ])
 
-    # =====================================================
-    # UNITED NATIONS
-    # =====================================================
-
     if "united nations" in lower:
 
         queries.extend([
@@ -174,10 +140,6 @@ def build_search_queries(
             "United Nations Charter 1945",
             "United Nations history founding date"
         ])
-
-    # =====================================================
-    # NUMERICAL CLAIMS
-    # =====================================================
 
     if re.search(
         r"\d+(?:\.\d+)?",
@@ -189,10 +151,6 @@ def build_search_queries(
             claim + " authoritative source",
             claim + " fact check"
         ])
-
-    # =====================================================
-    # FUTURE / PREDICTION
-    # =====================================================
 
     if any(
         word in lower
@@ -214,20 +172,12 @@ def build_search_queries(
             claim + " official report"
         ])
 
-    # =====================================================
-    # GENERAL
-    # =====================================================
-
     queries.extend([
         claim + " official source",
         claim + " reliable source",
         claim + " evidence",
         claim + " fact check"
     ])
-
-    # =====================================================
-    # DEEP MODE
-    # =====================================================
 
     if deep:
 
@@ -238,10 +188,6 @@ def build_search_queries(
             claim + " fact check",
             claim + " official report"
         ])
-
-    # =====================================================
-    # REMOVE DUPLICATES
-    # =====================================================
 
     unique = []
     seen = set()

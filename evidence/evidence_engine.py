@@ -23,7 +23,6 @@ from evidence.source_ranker import (
     rank_sources
 )
 
-
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -32,11 +31,6 @@ HEADERS = {
         "Chrome/151.0 Safari/537.36"
     )
 }
-
-
-# =========================================================
-# CLEAN TEXT
-# =========================================================
 
 def clean_page_text(text):
 
@@ -50,11 +44,6 @@ def clean_page_text(text):
     )
 
     return text.strip()
-
-
-# =========================================================
-# FETCH PAGE
-# =========================================================
 
 def fetch_page_text(url):
 
@@ -97,11 +86,6 @@ def fetch_page_text(url):
 
         return ""
 
-
-# =========================================================
-# SENTENCE SPLIT
-# =========================================================
-
 def split_sentences(text):
 
     sentences = re.split(
@@ -114,11 +98,6 @@ def split_sentences(text):
         for sentence in sentences
         if len(sentence.split()) >= 5
     ]
-
-
-# =========================================================
-# KEYWORD SCORE
-# =========================================================
 
 def keyword_score(
     claim,
@@ -151,11 +130,6 @@ def keyword_score(
         / len(claim_words)
     )
 
-
-# =========================================================
-# TF-IDF SCORE
-# =========================================================
-
 def tfidf_score(
     claim,
     sentence
@@ -182,11 +156,6 @@ def tfidf_score(
     except Exception:
 
         return 0.0
-
-
-# =========================================================
-# NUMBER SCORE
-# =========================================================
 
 def numeric_score(
     claim,
@@ -216,11 +185,6 @@ def numeric_score(
         return 1.0
 
     return 0.0
-
-
-# =========================================================
-# FACT PHRASE SCORE
-# =========================================================
 
 def direct_fact_score(
     claim,
@@ -291,11 +255,6 @@ def direct_fact_score(
             return 1.0
 
     return 0.0
-
-
-# =========================================================
-# EXTRACT RELEVANT SENTENCES
-# =========================================================
 
 def extract_relevant_sentences(
     claim,
@@ -371,11 +330,6 @@ def extract_relevant_sentences(
         selected
     )
 
-
-# =========================================================
-# RELEVANCE
-# =========================================================
-
 def calculate_relevance(
     claim,
     evidence_text,
@@ -419,11 +373,6 @@ def calculate_relevance(
     except Exception:
 
         return 0.0
-
-
-# =========================================================
-# REMOVE DUPLICATES
-# =========================================================
 
 def remove_duplicate_results(
     results
@@ -487,11 +436,6 @@ def remove_duplicate_results(
 
     return unique
 
-
-# =========================================================
-# SOURCE FILTER
-# =========================================================
-
 def filter_sources(
     results,
     source_scope
@@ -535,11 +479,6 @@ def filter_sources(
         ).lower() in allowed
     ]
 
-
-# =========================================================
-# EXTRA QUERIES
-# =========================================================
-
 def add_targeted_queries(
     claim,
     queries
@@ -548,10 +487,6 @@ def add_targeted_queries(
     lower = claim.lower()
 
     extra = []
-
-    # -----------------------------------------------------
-    # WATER
-    # -----------------------------------------------------
 
     if (
         "water" in lower
@@ -564,10 +499,6 @@ def add_targeted_queries(
             "freezing point pure water 0 C official"
         ])
 
-    # -----------------------------------------------------
-    # EVEREST
-    # -----------------------------------------------------
-
     if "everest" in lower:
 
         extra.extend([
@@ -576,10 +507,6 @@ def add_targeted_queries(
             "Mount Everest highest mountain Britannica"
         ])
 
-    # -----------------------------------------------------
-    # PACIFIC
-    # -----------------------------------------------------
-
     if "pacific ocean" in lower:
 
         extra.extend([
@@ -587,10 +514,6 @@ def add_targeted_queries(
             "Pacific Ocean largest ocean official",
             "Pacific Ocean smallest ocean false"
         ])
-
-    # -----------------------------------------------------
-    # EARTH / SUN
-    # -----------------------------------------------------
 
     if (
         "earth" in lower
@@ -606,10 +529,6 @@ def add_targeted_queries(
             "Earth center solar system false NASA"
         ])
 
-    # -----------------------------------------------------
-    # UNITED NATIONS
-    # -----------------------------------------------------
-
     if "united nations" in lower:
 
         extra.extend([
@@ -617,10 +536,6 @@ def add_targeted_queries(
             "United Nations established 1945 UN",
             "United Nations founded date Britannica"
         ])
-
-    # -----------------------------------------------------
-    # GENERAL COUNTER EVIDENCE
-    # -----------------------------------------------------
 
     extra.extend([
         claim + " official",
@@ -653,11 +568,6 @@ def add_targeted_queries(
 
     return unique
 
-
-# =========================================================
-# COLLECT EVIDENCE
-# =========================================================
-
 def collect_evidence(
     claim,
     max_results_per_query=5,
@@ -684,10 +594,6 @@ def collect_evidence(
 
     all_results = []
 
-    # =====================================================
-    # SEARCH
-    # =====================================================
-
     for query_index, query in enumerate(
         queries
     ):
@@ -713,10 +619,6 @@ def collect_evidence(
 
             continue
 
-    # =====================================================
-    # CLEAN / RANK
-    # =====================================================
-
     all_results = remove_duplicate_results(
         all_results
     )
@@ -731,10 +633,6 @@ def collect_evidence(
     )
 
     evidence = []
-
-    # =====================================================
-    # FETCH AND ANALYZE PAGES
-    # =====================================================
 
     for result in ranked:
 
@@ -789,10 +687,6 @@ def collect_evidence(
                 ""
             )
         )
-
-        # =================================================
-        # TITLE / DESCRIPTION FALLBACK
-        # =================================================
 
         if relevance < 0.05:
 
@@ -887,10 +781,6 @@ def collect_evidence(
             "evidence_text": relevant_text
         })
 
-    # =====================================================
-    # SORT
-    # =====================================================
-
     evidence.sort(
         key=lambda item: (
             item.get(
@@ -904,10 +794,6 @@ def collect_evidence(
         ),
         reverse=True
     )
-
-    # =====================================================
-    # PUBLISHER DIVERSITY
-    # =====================================================
 
     selected = []
 

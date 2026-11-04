@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 sys.path.insert(
@@ -9,18 +8,15 @@ sys.path.insert(
     str(PROJECT_ROOT)
 )
 
-
 from evidence.evidence_analyzer import (
     analyze_claim_against_evidence,
     normalize_claim_for_nli
 )
 
-
 claim = (
     "India overtakes China for the first time "
     "to become world's most populous country."
 )
-
 
 evidence_tests = [
 
@@ -50,11 +46,9 @@ evidence_tests = [
 
 ]
 
-
 print("=" * 70)
 print("VERIFI POPULATION NLI CONTROLLED TEST")
 print("=" * 70)
-
 
 print("\nCLAIM:")
 print(claim)

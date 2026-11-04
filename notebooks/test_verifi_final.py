@@ -22,7 +22,6 @@ from evidence.verdict_engine import (
     calculate_claim_verdict
 )
 
-
 TESTS = [
 
     (
@@ -117,7 +116,6 @@ TESTS = [
 
 ]
 
-
 print("=" * 70)
 print("VERIFI FINAL BATCH TEST")
 print("=" * 70)
@@ -198,7 +196,6 @@ for test_id, claim, expected in TESTS:
     else:
 
         print("STATUS: FAIL")
-
 
 print("\n")
 print("=" * 70)
