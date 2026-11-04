@@ -30,7 +30,9 @@ supporting_evidence = [
         "source_score": 98,
         "relevance_score": 0.90,
         "relationship": "entailment",
-        "nli_confidence": 0.95
+        "entailment_probability": 0.95,
+        "contradiction_probability": 0.01,
+        "directness": 1.0
     },
 
     {
@@ -39,7 +41,9 @@ supporting_evidence = [
         "source_score": 96,
         "relevance_score": 0.85,
         "relationship": "entailment",
-        "nli_confidence": 0.93
+        "entailment_probability": 0.93,
+        "contradiction_probability": 0.02,
+        "directness": 1.0
     },
 
     {
@@ -48,7 +52,9 @@ supporting_evidence = [
         "source_score": 98,
         "relevance_score": 0.80,
         "relationship": "entailment",
-        "nli_confidence": 0.91
+        "entailment_probability": 0.91,
+        "contradiction_probability": 0.03,
+        "directness": 1.0
     }
 ]
 
@@ -65,7 +71,9 @@ contradicting_evidence = [
         "source_score": 98,
         "relevance_score": 0.90,
         "relationship": "contradiction",
-        "nli_confidence": 0.96
+        "entailment_probability": 0.01,
+        "contradiction_probability": 0.96,
+        "directness": 1.0
     },
 
     {
@@ -74,7 +82,9 @@ contradicting_evidence = [
         "source_score": 96,
         "relevance_score": 0.85,
         "relationship": "contradiction",
-        "nli_confidence": 0.94
+        "entailment_probability": 0.02,
+        "contradiction_probability": 0.94,
+        "directness": 1.0
     },
 
     {
@@ -83,7 +93,9 @@ contradicting_evidence = [
         "source_score": 98,
         "relevance_score": 0.80,
         "relationship": "contradiction",
-        "nli_confidence": 0.92
+        "entailment_probability": 0.03,
+        "contradiction_probability": 0.92,
+        "directness": 1.0
     }
 ]
 
@@ -100,7 +112,9 @@ mixed_evidence = [
         "source_score": 98,
         "relevance_score": 0.90,
         "relationship": "entailment",
-        "nli_confidence": 0.90
+        "entailment_probability": 0.90,
+        "contradiction_probability": 0.05,
+        "directness": 1.0
     },
 
     {
@@ -109,7 +123,9 @@ mixed_evidence = [
         "source_score": 96,
         "relevance_score": 0.90,
         "relationship": "contradiction",
-        "nli_confidence": 0.90
+        "entailment_probability": 0.05,
+        "contradiction_probability": 0.90,
+        "directness": 1.0
     }
 ]
 
@@ -167,6 +183,18 @@ for name, evidence in [
         result["contradicting_sources"]
     )
 
+assert calculate_claim_verdict(
+    supporting_evidence
+)["verdict"] == "Supported"
+
+assert calculate_claim_verdict(
+    contradicting_evidence
+)["verdict"] == "Contradicted"
+
+assert calculate_claim_verdict(
+    mixed_evidence
+)["verdict"] == "Unverified"
+
 
 # =========================================================
 # OVERALL TEST
@@ -200,7 +228,8 @@ claim_results = [
 
 
 overall = calculate_overall_verdict(
-    claim_results
+    claim_results,
+    "Fake"
 )
 
 print(
@@ -212,3 +241,42 @@ print(
     "Confidence:",
     overall["confidence"]
 )
+
+assert overall["verdict"] == "REAL"
+
+assert calculate_overall_verdict(
+    [],
+    "Real"
+)["verdict"] == "REAL"
+
+assert calculate_overall_verdict(
+    [
+        {
+            "verdict": "Unverified",
+            "confidence": 0.0,
+            "support_score": 0.0,
+            "contradiction_score": 0.0
+        }
+    ],
+    "Fake"
+)["verdict"] == "FAKE"
+
+assert calculate_overall_verdict(
+    [
+        {
+            "verdict": "Supported",
+            "confidence": 0.7,
+            "support_score": 0.7,
+            "contradiction_score": 0.0
+        },
+        {
+            "verdict": "Contradicted",
+            "confidence": 0.9,
+            "support_score": 0.0,
+            "contradiction_score": 0.2
+        }
+    ],
+    "Fake"
+)["verdict"] == "REAL"
+
+print("Binary verdict fallback tests passed.")

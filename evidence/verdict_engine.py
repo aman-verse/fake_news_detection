@@ -517,25 +517,40 @@ def calculate_claim_verdict(
 # =========================================================
 
 def calculate_overall_verdict(
-    claim_results
+    claim_results,
+    fallback_verdict
 ):
+
+    fallback_verdict = str(
+        fallback_verdict
+    ).strip().upper()
+
+    if fallback_verdict not in {
+        "REAL",
+        "FAKE"
+    }:
+
+        raise ValueError(
+            "fallback_verdict must be Real or Fake"
+        )
 
     if not claim_results:
 
         return {
-            "verdict": "UNVERIFIED",
+            "verdict": fallback_verdict,
             "confidence": 0.0,
             "supported_claims": 0,
             "contradicted_claims": 0,
             "unverified_claims": 0,
-            "total_claims": 0
+            "total_claims": 0,
+            "decision_basis": "model"
         }
 
     supported = 0
     contradicted = 0
     unverified = 0
-
-    confidence_values = []
+    support_score = 0.0
+    contradiction_score = 0.0
 
     for result in claim_results:
 
@@ -551,52 +566,72 @@ def calculate_overall_verdict(
             )
         )
 
+        support_score += float(
+            result.get(
+                "support_score",
+                0.0
+            )
+        )
+
+        contradiction_score += float(
+            result.get(
+                "contradiction_score",
+                0.0
+            )
+        )
+
         if verdict == "Supported":
 
             supported += 1
-            confidence_values.append(
-                confidence
-            )
 
         elif verdict == "Contradicted":
 
             contradicted += 1
-            confidence_values.append(
-                confidence
-            )
 
         else:
 
             unverified += 1
 
-    if (
-        supported == 0
-        and contradicted == 0
-    ):
-
-        final_verdict = "UNVERIFIED"
-
-    elif (
-        supported > 0
-        and contradicted > 0
-    ):
-
-        final_verdict = "UNVERIFIED"
-
-    elif supported > 0:
-
+    if support_score > contradiction_score:
         final_verdict = "REAL"
-
-    else:
-
+        decision_basis = "evidence"
+    elif contradiction_score > support_score:
         final_verdict = "FAKE"
+        decision_basis = "evidence"
+    elif supported > contradicted:
+        final_verdict = "REAL"
+        decision_basis = "evidence"
+    elif contradicted > supported:
+        final_verdict = "FAKE"
+        decision_basis = "evidence"
+    else:
+        final_verdict = fallback_verdict
+        decision_basis = "model"
 
-    confidence = (
-        sum(confidence_values)
-        / len(confidence_values)
-        if confidence_values
-        else 0.0
+    evidence_total = (
+        support_score
+        + contradiction_score
     )
+
+    if evidence_total > 0:
+        confidence = max(
+            support_score,
+            contradiction_score
+        ) / evidence_total
+    else:
+        confidence_values = [
+            float(result.get("confidence", 0.0))
+            for result in claim_results
+            if result.get("verdict") in {
+                "Supported",
+                "Contradicted"
+            }
+        ]
+        confidence = (
+            sum(confidence_values) / len(confidence_values)
+            if confidence_values
+            else 0.0
+        )
 
     return {
         "verdict": final_verdict,
@@ -611,5 +646,7 @@ def calculate_overall_verdict(
         "unverified_claims":
             unverified,
         "total_claims":
-            len(claim_results)
+            len(claim_results),
+        "decision_basis":
+            decision_basis
     }

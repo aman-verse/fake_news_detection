@@ -1,32 +1,24 @@
-streamlit==1.49.0
-streamlit-option-menu==0.4.0
+streamlit
+streamlit-option-menu
 
 pandas
-numpy<2
 
 Pillow
-
-opencv-python-headless==4.11.0.86
+opencv-python-headless
 
 easyocr
-
 spacy
-
 sentence-transformers
-
 transformers
-
 torch
 
-scikit-learn==1.6.1
-
+scikit-learn
 plotly
 
 beautifulsoup4
-
 requests
-
 lxml
 
 python-dotenv
 ddgs
+joblib

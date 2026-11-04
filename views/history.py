@@ -64,14 +64,24 @@ def show():
         if verdict == "REAL":
 
             verdict_text = "🟢 REAL"
+            binary_verdict = "REAL"
 
         elif verdict == "FAKE":
 
             verdict_text = "🔴 FAKE"
+            binary_verdict = "FAKE"
 
         else:
+            from models.predictor import predict_news
 
-            verdict_text = "🟡 UNVERIFIED"
+            binary_verdict = predict_news(
+                input_text
+            ).upper()
+            verdict_text = (
+                "🟢 REAL"
+                if binary_verdict == "REAL"
+                else "🔴 FAKE"
+            )
 
         # -------------------------------------------------
         # HISTORY CARD
@@ -145,7 +155,7 @@ def show():
             with claim_col3:
 
                 st.metric(
-                    "Unverified",
+                    "Evidence gaps",
                     unverified
                 )
 
@@ -196,9 +206,24 @@ def show():
                     )
 
                     claim_verdict = claim.get(
-                        "verdict",
-                        "Unverified"
+                        "binary_verdict"
                     )
+
+                    if claim_verdict not in {
+                        "REAL",
+                        "FAKE"
+                    }:
+                        legacy_verdict = claim.get(
+                            "verdict",
+                            ""
+                        )
+                        claim_verdict = {
+                            "Supported": "REAL",
+                            "Contradicted": "FAKE"
+                        }.get(
+                            legacy_verdict,
+                            binary_verdict
+                        )
 
                     claim_confidence = claim.get(
                         "confidence",

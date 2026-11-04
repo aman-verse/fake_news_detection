@@ -318,9 +318,20 @@ def show():
                         analyzed_evidence
                     )
 
+                    if claim_verdict["verdict"] == "Supported":
+                        binary_claim_verdict = "REAL"
+                    elif claim_verdict["verdict"] == "Contradicted":
+                        binary_claim_verdict = "FAKE"
+                    else:
+                        binary_claim_verdict = predict_news(
+                            claim
+                        ).upper()
+
                     claim_results.append(
                         {
                             "claim": claim,
+
+                            "binary_verdict": binary_claim_verdict,
 
                             "verdict": claim_verdict[
                                 "verdict"
@@ -362,7 +373,8 @@ def show():
                 # =============================================
 
                 overall = calculate_overall_verdict(
-                    claim_results
+                    claim_results,
+                    prediction
                 )
 
             # -------------------------------------------------
@@ -429,8 +441,18 @@ def show():
 
         overall_verdict = overall.get(
             "verdict",
-            "Inconclusive"
+            prediction.upper() if prediction else "FAKE"
         )
+
+        if overall_verdict not in {
+            "REAL",
+            "FAKE"
+        }:
+            overall_verdict = (
+                prediction.upper()
+                if prediction
+                else "FAKE"
+            )
 
         overall_confidence = overall.get(
             "confidence",
@@ -443,22 +465,22 @@ def show():
                 "🟢 REAL"
             )
 
-        elif overall_verdict == "FAKE":
+        else:
 
             st.error(
                 "🔴 FAKE"
-            )
-
-        else:
-
-            st.warning(
-                "🟡 UNVERIFIED"
             )
 
         st.metric(
             "Evidence Confidence",
             f"{overall_confidence * 100:.1f}%"
         )
+
+        if overall.get("decision_basis") == "model":
+            st.caption(
+                "Source evidence was unavailable or evenly balanced; "
+                "the classifier supplied the binary verdict."
+            )
 
 
         # =====================================================
@@ -524,32 +546,41 @@ def show():
                         independent
                     )
                 
-                verdict = result[
-                    "verdict"
-                ]
+                verdict = result.get(
+                    "binary_verdict"
+                )
+
+                if verdict not in {
+                    "REAL",
+                    "FAKE"
+                }:
+                    evidence_verdict = result.get(
+                        "verdict"
+                    )
+                    if evidence_verdict == "Supported":
+                        verdict = "REAL"
+                    elif evidence_verdict == "Contradicted":
+                        verdict = "FAKE"
+                    else:
+                        verdict = predict_news(
+                            result["claim"]
+                        ).upper()
 
                 confidence = result[
                     "confidence"
                 ]
 
-                if verdict == "Supported":
+                if verdict == "REAL":
 
                     st.success(
-                        f"🟢 Supported — "
-                        f"{confidence * 100:.1f}%"
-                    )
-
-                elif verdict == "Contradicted":
-
-                    st.error(
-                        f"🔴 Contradicted — "
+                        f"🟢 REAL — "
                         f"{confidence * 100:.1f}%"
                     )
 
                 else:
 
-                    st.warning(
-                        f"🟡 Unclear — "
+                    st.error(
+                        f"🔴 FAKE — "
                         f"{confidence * 100:.1f}%"
                     )
 
@@ -565,6 +596,11 @@ def show():
                     "evidence",
                     []
                 )
+
+                if not evidence:
+                    st.info(
+                        "No relevant source passages were found for this claim."
+                    )
 
                 for evidence_number, item in enumerate(
                     evidence[:5],
@@ -586,9 +622,20 @@ def show():
                             f"{item.get('source_type', '')}"
                         )
 
+                        relationship = item.get(
+                            "relationship",
+                            "neutral"
+                        )
+                        relationship_label = {
+                            "entailment": "Supports this claim",
+                            "contradiction": "Contradicts this claim"
+                        }.get(
+                            relationship,
+                            "No clear relation"
+                        )
+
                         st.write(
-                            f"**Relationship:** "
-                            f"{item.get('relationship', '')}"
+                            f"**Relation:** {relationship_label}"
                         )
 
                         st.write(
@@ -596,16 +643,26 @@ def show():
                             f"{item.get('nli_confidence', 0) * 100:.1f}%"
                         )
 
-                        st.write(
-                            item.get(
-                                "description",
-                                ""
-                            )
+                        passage = item.get(
+                            "evidence_text",
+                            ""
+                        ) or item.get(
+                            "description",
+                            ""
                         )
+
+                        if passage:
+                            st.write(passage)
 
                         st.markdown(
                             f"[Open source]({item.get('url', '')})"
                         )
+
+        if not claim_results:
+            st.info(
+                "No claims or source passages were available; "
+                "the binary result uses the article classifier."
+            )
 
         # =====================================================
         # ANALYZED CONTENT
