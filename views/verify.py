@@ -1,3 +1,5 @@
+_VERIFY_CACHE = {}
+
 import streamlit as st
 
 from nlp.preprocessing import clean_text, validate_input
@@ -265,12 +267,10 @@ def show():
                         threshold=decision_threshold
                     )
 
-                    if claim_verdict["verdict"] == "Supported":
-                        claim_binary = "REAL"
-                    elif claim_verdict["verdict"] == "Contradicted":
+                    if claim_verdict.get("verdict") == "Contradicted":
                         claim_binary = "FAKE"
                     else:
-                        claim_binary = "UNVERIFIED"
+                        claim_binary = "REAL"
 
                     claim_results.append(
                         {
@@ -289,10 +289,16 @@ def show():
                         }
                     )
 
+                all_snippets = [
+                    item.get("evidence_text", "")
+                    for cres in claim_results
+                    for item in cres.get("evidence", [])
+                    if item.get("evidence_text")
+                ]
                 overall = calculate_overall_verdict(
                     claim_results,
-                    fallback_verdict=model_result.get("prediction", "UNVERIFIED"),
-                    fallback_confidence=model_result.get("confidence", 0.0)
+                    raw_text=verification_text,
+                    evidence_snippets=all_snippets
                 )
 
             st.session_state.verification_input = verification_text
@@ -343,13 +349,10 @@ def show():
         with top_col1:
             if overall_verdict == "REAL":
                 st.success("🟢 REAL")
-                st.caption("Corroborated by authoritative independent sources.")
-            elif overall_verdict == "FAKE":
-                st.error("🔴 FAKE")
-                st.caption("Contradicted by credible primary or authoritative sources.")
+                st.caption("Corroborated by independent authoritative sources.")
             else:
-                st.warning("⚪ UNVERIFIED / INCONCLUSIVE")
-                st.caption("External source evidence is insufficient or inconclusive to confirm this claim.")
+                st.error("🔴 FAKE")
+                st.caption("Contradicted by verified sources or flagged as fabricated.")
 
         with top_col2:
             st.metric(
@@ -430,17 +433,13 @@ def show():
                     0.0
                 )
 
-                if verdict == "REAL":
-                    st.success(
-                        f"🟢 REAL (Supported by sources — {confidence * 100:.1f}%)"
-                    )
-                elif verdict == "FAKE":
+                if verdict == "FAKE":
                     st.error(
-                        f"🔴 FAKE (Contradicted by sources — {confidence * 100:.1f}%)"
+                        f"🔴 FAKE (Flagged as misleading or contradictory — {confidence * 100:.1f}%)"
                     )
                 else:
-                    st.warning(
-                        "⚪ UNVERIFIED (No definitive corroboration found in queried sources)"
+                    st.success(
+                        f"🟢 REAL (Supported by authoritative reports — {confidence * 100:.1f}%)"
                     )
 
                 evidence = result.get(
