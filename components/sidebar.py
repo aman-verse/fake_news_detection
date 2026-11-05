@@ -48,33 +48,8 @@ def render_sidebar():
 
                 st.rerun()
 
-        st.divider()
-
-        st.caption("API SETTINGS")
-
         if "openai_api_key" not in st.session_state:
             st.session_state.openai_api_key = DEFAULT_OPENAI_KEY
-
-        user_key = st.text_input(
-            "OpenAI API Key",
-            value=st.session_state.openai_api_key,
-            type="password",
-            help="Your OpenAI secret key for GPT verification."
-        )
-        if user_key != st.session_state.openai_api_key:
-            st.session_state.openai_api_key = user_key
-
-        st.divider()
-
-        st.caption("VERIFICATION ENGINE")
-
-        st.success(
-            "●  GPT Engine Active"
-        )
-
-        st.caption(
-            "OpenAI GPT  •  OCR  •  Evidence"
-        )
 
         st.divider()
 

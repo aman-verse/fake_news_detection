@@ -58,7 +58,10 @@ def verify_with_openai(text: str, api_key: str = None):
         return fallback_result
 
     try:
-        client = OpenAI(api_key=clean_key)
+        client = OpenAI(
+            api_key=clean_key,
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+        )
         prompt = (
             f"You are a strict, highly accurate news verification classifier.\n"
             f"Determine whether this headline or news statement is factually REAL or FAKE.\n\n"
@@ -73,7 +76,7 @@ def verify_with_openai(text: str, api_key: str = None):
         )
 
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gemini-2.5-flash",
             messages=[
                 {"role": "system", "content": "You are a professional fact-checker. Always return strictly valid JSON with verdict as REAL or FAKE."},
                 {"role": "user", "content": prompt}
