@@ -90,9 +90,4 @@ Open `http://localhost:8501` in your web browser.
 - **Evidence Dependence:** Authoritative verification relies on live web queries. If an obscure claim has no published reporting, Verifi flags it as **UNVERIFIED / INCONCLUSIVE** rather than forcing a misleading binary verdict.
 - **OCR Quality:** Image text extraction depends on screenshot resolution and typography. Clean, high-contrast images yield optimal results.
 
----
-
-## 👥 Credits
-- **Developer:** Satyam Verma, BIT Mesra
-- **Version:** 1.1
 
